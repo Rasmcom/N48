@@ -1,4 +1,4 @@
-/* Touch interaction and layout safety fixes */
+/* Touch interaction and layout safety fixes — verified layout revision */
 #sideNav,
 .nav-item,
 .nav-icon,
@@ -76,7 +76,8 @@
 }
 
 @media (max-width: 900px) {
-  .sidebar {
+  .sidebar,
+  .app-shell.sidebar-collapsed .sidebar {
     pointer-events: none !important;
   }
 
