@@ -8,10 +8,29 @@ async function runScenario(name, contextOptions) {
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   const errors = [];
+  const isMobile = Boolean(contextOptions.isMobile);
+
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
   page.on('console', msg => {
     if (msg.type() === 'error') errors.push(`console: ${msg.text()}`);
   });
+
+  async function navigateTo(view) {
+    if (isMobile) {
+      const shellClass = await page.locator('.app-shell').getAttribute('class') || '';
+      if (!shellClass.includes('sidebar-mobile-open')) {
+        await page.locator('#mobileMenuBtn').click();
+        await page.waitForTimeout(100);
+      }
+    }
+    await page.locator(`[data-view="${view}"]`).click();
+    await page.waitForTimeout(100);
+    assert.equal(
+      await page.locator(`[data-view-panel="${view}"].active`).count(),
+      1,
+      `${name}: ${view} opens`
+    );
+  }
 
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await page.evaluate(async () => {
@@ -26,15 +45,7 @@ async function runScenario(name, contextOptions) {
   assert.equal(await page.locator('.view.active').count(), 1, `${name}: initial active view`);
   assert.equal(await page.locator('[data-view-panel="dashboard"].active').count(), 1, `${name}: dashboard active`);
 
-  if (contextOptions.isMobile) {
-    await page.locator('#mobileMenuBtn').click();
-    await page.waitForTimeout(100);
-    assert.match(await page.locator('.app-shell').getAttribute('class'), /sidebar-mobile-open/, `${name}: mobile menu opens`);
-  }
-
-  await page.locator('[data-view="settings"]').click();
-  await page.waitForTimeout(100);
-  assert.equal(await page.locator('[data-view-panel="settings"].active').count(), 1, `${name}: settings opens`);
+  await navigateTo('settings');
 
   await page.locator('#schoolNameInput').fill('مدرسة الاختبار');
   await page.locator('[data-choice="gender"][data-value="boys"]').click();
@@ -79,11 +90,11 @@ async function runScenario(name, contextOptions) {
   assert.equal(await page.locator('#teacherAssignmentsTable tbody tr').count(), 1, `${name}: assignment added`);
 
   await page.locator('[data-action="save-teacher"]').click();
-  await page.locator('[data-view="validate"]').click();
+  await navigateTo('validate');
   await page.locator('#runValidationBtn').click();
   assert.ok(await page.locator('#validationTable').innerText(), `${name}: validation renders`);
 
-  await page.locator('[data-view="distribution"]').click();
+  await navigateTo('distribution');
   await page.locator('#generateDistributionBtn').click();
   assert.ok(await page.locator('#toast').innerText(), `${name}: distribution gives feedback`);
 
