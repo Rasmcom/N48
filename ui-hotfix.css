@@ -1,0 +1,61 @@
+/* iOS and touch interaction hotfix */
+#sideNav,
+.nav-item,
+.nav-icon,
+#mobileMenuBtn,
+#sidebarToggle,
+.icon-button,
+[data-go],
+.wizard-step,
+.choice-card,
+.type-button,
+.stage-toggle {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item,
+#mobileMenuBtn,
+#sidebarToggle,
+.icon-button,
+[data-go] {
+  position: relative;
+  pointer-events: auto !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.nav-item > *,
+#mobileMenuBtn > *,
+#sidebarToggle > *,
+.icon-button > *,
+[data-go] > * {
+  pointer-events: none;
+}
+
+.sidebar { z-index: 100 !important; }
+.sidebar-backdrop { z-index: 90 !important; }
+.sidebar-toggle { z-index: 120 !important; }
+.mobile-menu-button { z-index: 40; }
+
+.nav-item:active,
+.icon-button:active,
+.mobile-menu-button:active,
+.sidebar-toggle:active,
+[data-go]:active {
+  transform: scale(.97);
+}
+
+@media (max-width: 900px) {
+  .side-nav,
+  .sidebar-footer,
+  .brand-block {
+    position: relative;
+    z-index: 105;
+  }
+
+  .nav-item { min-height: 52px; }
+  .nav-icon { min-width: 32px; min-height: 32px; }
+  .mobile-menu-button,
+  .sidebar-toggle { min-width: 44px; min-height: 44px; }
+}
