@@ -59,8 +59,12 @@ async function runScenario(name, contextOptions) {
   await page.locator('#teachersTextInput').fill('Tea_1017100908\tاحمد سعد احمد الغامدي\t966530237122\tدائم\tمعلم\tدين\tدين');
   await page.locator('#parseTextBtn').click();
   assert.equal(await page.locator('#importPreview tbody tr').count(), 1, `${name}: text import preview`);
+  assert.equal(await page.locator('[data-preview-field="name"]').inputValue(), 'احمد سعد احمد الغامدي', `${name}: teacher name parsed`);
+  assert.equal(await page.locator('[data-preview-field="specialty"]').inputValue(), 'دراسات إسلامية', `${name}: specialty parsed`);
 
   await page.locator('[data-preview-field="load"]').fill('24');
+  await page.waitForTimeout(100);
+  assert.equal(await page.locator('#commitImportBtn').isEnabled(), true, `${name}: import approval enabled`);
   await page.locator('#commitImportBtn').click();
   await page.waitForTimeout(100);
   assert.equal(await page.locator('[data-view-panel="classify"].active').count(), 1, `${name}: classify opens`);
