@@ -34,6 +34,10 @@ jobs:
           new_input_handler = "$('#importPreview').addEventListener('input',e=>{const i=e.target.closest('[data-preview-field]');if(!i)return;const x=state.importPreview.find(v=>v.tempId===i.dataset.previewId);if(!x)return;x[i.dataset.previewField]=i.dataset.previewField==='load'?(i.value?Number(i.value):null):i.value;x.status=!x.name?'error':!x.specialty||!Number(x.load)?'warning':'complete';$('#commitImportBtn').disabled=!state.importPreview.length||state.importPreview.some(v=>!v.name||!v.specialty||!Number(v.load));const row=i.closest('tr');if(row&&row.lastElementChild)row.lastElementChild.innerHTML=previewChip(x);updatePreviewQuality();scheduleSave()});"
           text = text.replace(old_input_handler, new_input_handler)
 
+          old_parser = "function parseText(text){return text.split(/\\r?\\n/).map(clean).filter(Boolean).map((line,i)=>{const parts=line.includes('\\t')?line.split('\\t').map(clean):line.includes('|')?line.split('|').map(clean):line.split(',').map(clean);const name=detectName(parts);const specialty=detectSpecialty(parts,name);const load=detectLoad(parts);return{tempId:uid('preview'),row:i+1,name,specialty,load,status:!name?'error':!specialty||!load?'warning':'complete'}}).filter(x=>x.name)}"
+          new_parser = "function parseText(text){return text.split(/\\r?\\n/).map(line=>String(line).trim()).filter(Boolean).map((line,i)=>{const parts=line.includes('\\t')?line.split('\\t').map(clean):line.includes('|')?line.split('|').map(clean):line.split(',').map(clean);const name=detectName(parts);const specialty=detectSpecialty(parts,name);const load=detectLoad(parts);return{tempId:uid('preview'),row:i+1,name,specialty,load,status:!name?'error':!specialty||!load?'warning':'complete'}}).filter(x=>x.name)}"
+          text = text.replace(old_parser, new_parser)
+
           path.write_text(text, encoding='utf-8')
           PY
           node --check app3.js
@@ -49,5 +53,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add app3.js
-          git commit -m "fix: keep import fields interactive and enable approval"
+          git commit -m "fix: parse tab-separated teacher data correctly"
           git push origin HEAD:dev/school-setup-import
