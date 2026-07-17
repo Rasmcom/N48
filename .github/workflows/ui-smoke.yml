@@ -22,9 +22,31 @@ jobs:
           node-version: '20'
 
       - name: Check JavaScript syntax
+        id: syntax
+        shell: bash
         run: |
-          node --check app3.js
-          node --check ui-hotfix.js
+          set +e
+          node --check app3.js > app3-check.txt 2>&1
+          APP3_STATUS=$?
+          node --check ui-hotfix.js > hotfix-check.txt 2>&1
+          HOTFIX_STATUS=$?
+          cat app3-check.txt
+          cat hotfix-check.txt
+          echo "app3_status=$APP3_STATUS" >> "$GITHUB_OUTPUT"
+          echo "hotfix_status=$HOTFIX_STATUS" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload syntax diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: syntax-diagnostics
+          path: |
+            app3-check.txt
+            hotfix-check.txt
+
+      - name: Stop on syntax errors
+        if: steps.syntax.outputs.app3_status != '0' || steps.syntax.outputs.hotfix_status != '0'
+        run: exit 1
 
       - name: Install Playwright
         run: |
