@@ -794,11 +794,33 @@
     }
   }
 
+  const mobileSidebarMedia = window.matchMedia('(max-width: 900px)');
+
+  function setMobileSidebar(open) {
+    const shell = $('.app-shell');
+    const button = $('#mobileMenuBtn');
+    if (!shell) return;
+    shell.classList.toggle('sidebar-mobile-open', Boolean(open));
+    document.body.classList.toggle('mobile-menu-open', Boolean(open));
+    if (button) {
+      button.setAttribute('aria-expanded', String(Boolean(open)));
+      button.setAttribute('aria-label', open ? 'إغلاق القائمة الجانبية' : 'فتح القائمة الجانبية');
+    }
+  }
+
   function applySidebarState(collapsed, persist = true) {
     const shell = $('.app-shell');
     const sidebar = $('.sidebar');
     const toggle = $('#sidebarToggle');
     if (!shell || !sidebar || !toggle) return;
+    if (mobileSidebarMedia.matches) {
+      shell.classList.remove('sidebar-collapsed');
+      sidebar.classList.remove('collapsed');
+      toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', 'إغلاق القائمة الجانبية');
+      toggle.title = 'إغلاق القائمة الجانبية';
+      return;
+    }
     shell.classList.toggle('sidebar-collapsed', collapsed);
     sidebar.classList.toggle('collapsed', collapsed);
     toggle.setAttribute('aria-expanded', String(!collapsed));
@@ -809,12 +831,30 @@
 
   function bindEvents() {
     $('#sidebarToggle').addEventListener('click', () => {
+      if (mobileSidebarMedia.matches) {
+        setMobileSidebar(false);
+        return;
+      }
       const collapsed = !$('.app-shell').classList.contains('sidebar-collapsed');
       applySidebarState(collapsed);
     });
+    $('#mobileMenuBtn').addEventListener('click', () => {
+      setMobileSidebar(!$('.app-shell').classList.contains('sidebar-mobile-open'));
+    });
+    $('#sidebarBackdrop').addEventListener('click', () => setMobileSidebar(false));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') setMobileSidebar(false);
+    });
+    mobileSidebarMedia.addEventListener?.('change', (event) => {
+      setMobileSidebar(false);
+      applySidebarState(event.matches ? false : localStorage.getItem('activity10SidebarCollapsed') === '1', false);
+    });
     $('#sideNav').addEventListener('click', (event) => {
       const button = event.target.closest('[data-view]');
-      if (button) navigate(button.dataset.view);
+      if (button) {
+        navigate(button.dataset.view);
+        if (mobileSidebarMedia.matches) setMobileSidebar(false);
+      }
     });
     document.addEventListener('click', (event) => {
       const go = event.target.closest('[data-go]');
@@ -916,7 +956,8 @@
       state = mergeState(await readState());
     }
     bindEvents();
-    applySidebarState(localStorage.getItem('activity10SidebarCollapsed') === '1', false);
+    applySidebarState(mobileSidebarMedia.matches ? false : localStorage.getItem('activity10SidebarCollapsed') === '1', false);
+    setMobileSidebar(false);
     renderAll();
   }
 
