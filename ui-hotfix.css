@@ -1,4 +1,4 @@
-/* iOS and touch interaction hotfix */
+/* Touch interaction and layout safety fixes */
 #sideNav,
 .nav-item,
 .nav-icon,
@@ -46,7 +46,44 @@
   transform: scale(.97);
 }
 
+/*
+ * The document is RTL, which reverses CSS grid line numbering. The original
+ * shell placed the content in the same visual column as the fixed sidebar.
+ * Use an LTR grid container while preserving RTL inside both regions.
+ */
+@media (min-width: 901px) {
+  .app-shell,
+  .app-shell.sidebar-collapsed {
+    direction: ltr;
+    grid-template-columns: minmax(0, 1fr) 286px !important;
+  }
+
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: minmax(0, 1fr) 88px !important;
+  }
+
+  .main-area {
+    direction: rtl;
+    grid-column: 1 !important;
+    min-width: 0;
+  }
+
+  .sidebar,
+  .app-shell.sidebar-collapsed .sidebar {
+    direction: rtl;
+    grid-column: 2 !important;
+  }
+}
+
 @media (max-width: 900px) {
+  .sidebar {
+    pointer-events: none !important;
+  }
+
+  .app-shell.sidebar-mobile-open .sidebar {
+    pointer-events: auto !important;
+  }
+
   .side-nav,
   .sidebar-footer,
   .brand-block {
