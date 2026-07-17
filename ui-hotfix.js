@@ -2,13 +2,26 @@
   'use strict';
 
   /*
-   * إصلاح تفاعلات iOS يجب أن يبقى بصريًا فقط عبر ui-hotfix.css.
-   * لا نضيف مستمعات تنقل أو نكرر مستمعات app3.js؛ لأن ذلك يؤدي إلى
-   * تنفيذ النقرة مرتين أو فتح الصفحة دون تشغيل دوال الرسم والحفظ الخاصة بها.
+   * إصلاح تفاعلات iOS يبقى بصريًا عبر ui-hotfix.css.
+   * لا نضيف مستمعات تنقل مكررة؛ app3.js هو المصدر الوحيد لسلوك الموقع.
    */
-  document.addEventListener('DOMContentLoaded', () => {
-    document
-      .querySelectorAll('button:not([type])')
+  function normalizeButtons(root = document) {
+    root
+      .querySelectorAll?.('button:not([type])')
       .forEach((button) => button.setAttribute('type', 'button'));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    normalizeButtons();
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof Element)) continue;
+          if (node.matches('button:not([type])')) node.setAttribute('type', 'button');
+          normalizeButtons(node);
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   });
 })();
