@@ -80,4 +80,22 @@ jobs:
           exit 1
 
       - name: Run UI smoke tests
-        run: node tests/ui-smoke.mjs
+        id: smoke_test
+        shell: bash
+        run: |
+          set +e
+          node tests/ui-smoke.mjs > smoke-output.txt 2>&1
+          STATUS=$?
+          cat smoke-output.txt
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload smoke diagnostics
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-diagnostics
+          path: smoke-output.txt
+
+      - name: Stop on smoke test failure
+        if: steps.smoke_test.outputs.status != '0'
+        run: exit 1
