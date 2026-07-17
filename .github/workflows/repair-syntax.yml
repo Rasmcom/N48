@@ -1,0 +1,46 @@
+name: Repair application syntax
+
+on:
+  push:
+    branches:
+      - dev/school-setup-import
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout development branch
+        uses: actions/checkout@v4
+        with:
+          ref: dev/school-setup-import
+
+      - name: Repair malformed workflow steps array
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('app3.js')
+          text = path.read_text(encoding='utf-8')
+          bad = "const steps=[['إعداد المدرسة','الهوية والمراحل والشعب',flags[0]],['استيراد المعلمين','الأسماء والتخصصات والأنصبة',flags[1]],['إسناد المواد والفصول','الحصص تُقرأ تلقائيًا من الدليل',flags[2]],['التحقق','فحص النصاب ورصيد كل فصل',flags[3]],['التوزيع','اختيار المادة المختصر منها لكل فصل',flags[4]];"
+          good = "const steps=[['إعداد المدرسة','الهوية والمراحل والشعب',flags[0]],['استيراد المعلمين','الأسماء والتخصصات والأنصبة',flags[1]],['إسناد المواد والفصول','الحصص تُقرأ تلقائيًا من الدليل',flags[2]],['التحقق','فحص النصاب ورصيد كل فصل',flags[3]],['التوزيع','اختيار المادة المختصر منها لكل فصل',flags[4]]];"
+          if bad in text:
+              path.write_text(text.replace(bad, good), encoding='utf-8')
+          PY
+          node --check app3.js
+          node --check ui-hotfix.js
+
+      - name: Commit repair when needed
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No repair required"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app3.js
+          git commit -m "fix: restore application JavaScript execution"
+          git push origin HEAD:dev/school-setup-import
