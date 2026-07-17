@@ -44,6 +44,20 @@ jobs:
             app3-check.txt
             hotfix-check.txt
 
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: source-snapshot
+          path: |
+            index.html
+            app3.js
+            ui-hotfix.js
+            styles.css
+            phase2.css
+            phase3.css
+            ui-hotfix.css
+            tests/ui-smoke.mjs
+
       - name: Stop on syntax errors
         if: steps.syntax.outputs.app3_status != '0' || steps.syntax.outputs.hotfix_status != '0'
         run: exit 1
