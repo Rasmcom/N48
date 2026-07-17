@@ -126,7 +126,7 @@
     const eligibleSections=allSections().filter(s=>planForGrade(s.gradeId)?.activity===0).length;
     $('#statTeachers').textContent=ar(state.teachers.length);$('#statComplete').textContent=ar(complete);$('#statEligible').textContent=ar(eligibleSections);$('#statReview').textContent=ar(active.length-complete);
     const flags=[settingsComplete(),state.teachers.length>0,complete===active.length&&active.length>0,state.validation?.teachers?.length>0,state.distributions.length>0];const progress=Math.round(flags.filter(Boolean).length/flags.length*100);$('#progressPercent').textContent=`${ar(progress)}٪`;$('#progressBar').style.width=`${progress}%`;
-    const steps=[['إعداد المدرسة','الهوية والمراحل والشعب',flags[0]],['استيراد المعلمين','الأسماء والتخصصات والأنصبة',flags[1]],['إسناد المواد والفصول','الحصص تُقرأ تلقائيًا من الدليل',flags[2]],['التحقق','فحص النصاب ورصيد كل فصل',flags[3]],['التوزيع','اختيار المادة المختصر منها لكل فصل',flags[4]];
+    const steps=[['إعداد المدرسة','الهوية والمراحل والشعب',flags[0]],['استيراد المعلمين','الأسماء والتخصصات والأنصبة',flags[1]],['إسناد المواد والفصول','الحصص تُقرأ تلقائيًا من الدليل',flags[2]],['التحقق','فحص النصاب ورصيد كل فصل',flags[3]],['التوزيع','اختيار المادة المختصر منها لكل فصل',flags[4]]];
     $('#workflowSteps').innerHTML=steps.map((s,i)=>`<div class="workflow-step ${s[2]?'complete':''}"><span class="step-index">${ar(i+1)}</span><div><strong>${s[0]}</strong><small>${s[1]}</small></div><span class="step-status">${s[2]?'مكتملة':'قيد الإعداد'}</span></div>`).join('');
   }
 
