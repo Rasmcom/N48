@@ -46,4 +46,21 @@ jobs:
           exit 1
 
       - name: Run UI smoke tests
-        run: node tests/ui-smoke.mjs
+        id: smoke
+        continue-on-error: true
+        run: node tests/ui-smoke.mjs > smoke-output.txt 2>&1
+
+      - name: Print smoke diagnostics
+        if: always()
+        run: cat smoke-output.txt || true
+
+      - name: Upload smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-diagnostics
+          path: smoke-output.txt
+
+      - name: Stop on real smoke failure
+        if: steps.smoke.outcome == 'failure'
+        run: exit 1
