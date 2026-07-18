@@ -11,6 +11,18 @@ async function runScenario(name, contextOptions) {
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
   page.on('console', msg => { if (msg.type() === 'error') errors.push(`console: ${msg.text()}`); });
 
+  const openNav = async view => {
+    if (contextOptions.isMobile) {
+      const shellClass = await page.locator('.app-shell').getAttribute('class') || '';
+      if (!shellClass.includes('sidebar-mobile-open')) {
+        await page.locator('#mobileMenuBtn').click();
+        await page.waitForTimeout(80);
+      }
+    }
+    await page.locator(`[data-view="${view}"]`).click();
+    await page.waitForTimeout(80);
+  };
+
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await page.evaluate(async () => {
     localStorage.clear();
@@ -30,7 +42,7 @@ async function runScenario(name, contextOptions) {
     assert.match(await page.locator('.app-shell').getAttribute('class'), /sidebar-mobile-open/, `${name}: mobile menu opens`);
   }
 
-  await page.locator('[data-view="settings"]').click();
+  await openNav('settings');
   await page.locator('#schoolNameInput').fill('مدرسة الاختبار');
   await page.locator('[data-choice="gender"][data-value="boys"]').click();
   await page.locator('#settingsNextBtn').click();
@@ -89,11 +101,11 @@ async function runScenario(name, contextOptions) {
   assert.equal(await page.locator('#teacherAssignmentsTable tbody tr').count(), 8, `${name}: eight assignments added in batch`);
 
   await page.locator('[data-action="save-teacher"]').click();
-  await page.locator('[data-view="validate"]').click();
+  await openNav('validate');
   await page.locator('#runValidationBtn').click();
   assert.ok(await page.locator('#validationTable').innerText(), `${name}: validation renders`);
 
-  await page.locator('[data-view="distribution"]').click();
+  await openNav('distribution');
   await page.locator('#generateDistributionBtn').click();
   await page.waitForTimeout(100);
   assert.ok(await page.locator('#distributionResults').innerText(), `${name}: distribution renders`);
