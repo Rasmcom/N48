@@ -25,12 +25,13 @@ jobs:
         if: ${{ github.event_name == 'push' }}
         run: |
           python3 tools/patch_semester.py
+          python3 tools/fix_semester_validation.py
           node --check app3.js
           if ! git diff --quiet -- app3.js; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add app3.js
-            git commit -m "feat: split activity distribution into two conflict-free semesters"
+            git commit -m "fix: validate activity capacity per semester"
             git push origin HEAD:dev/school-setup-import
           fi
 
