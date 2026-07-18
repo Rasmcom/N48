@@ -22,45 +22,11 @@ jobs:
           node-version: '20'
 
       - name: Check JavaScript syntax
-        id: syntax
-        shell: bash
         run: |
-          set +e
-          node --check app3.js > app3-check.txt 2>&1
-          APP3_STATUS=$?
-          node --check ui-hotfix.js > hotfix-check.txt 2>&1
-          HOTFIX_STATUS=$?
-          cat app3-check.txt
-          cat hotfix-check.txt
-          echo "app3_status=$APP3_STATUS" >> "$GITHUB_OUTPUT"
-          echo "hotfix_status=$HOTFIX_STATUS" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Upload syntax diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: syntax-diagnostics
-          path: |
-            app3-check.txt
-            hotfix-check.txt
-
-      - name: Upload source snapshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: source-snapshot
-          path: |
-            index.html
-            app3.js
-            ui-hotfix.js
-            styles.css
-            phase2.css
-            phase3.css
-            ui-hotfix.css
-            tests/ui-smoke.mjs
-
-      - name: Stop on syntax errors
-        if: steps.syntax.outputs.app3_status != '0' || steps.syntax.outputs.hotfix_status != '0'
-        run: exit 1
+          node --check app3.js
+          node --check ui-hotfix.js
+          node --check import-selection.js
+          node --check tests/ui-smoke.mjs
 
       - name: Install Playwright
         run: |
@@ -80,22 +46,4 @@ jobs:
           exit 1
 
       - name: Run UI smoke tests
-        id: smoke_test
-        shell: bash
-        run: |
-          set +e
-          node tests/ui-smoke.mjs > smoke-output.txt 2>&1
-          STATUS=$?
-          cat smoke-output.txt
-          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
-          exit 0
-
-      - name: Upload smoke diagnostics
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-diagnostics
-          path: smoke-output.txt
-
-      - name: Stop on smoke test failure
-        if: steps.smoke_test.outputs.status != '0'
-        run: exit 1
+        run: node tests/ui-smoke.mjs
