@@ -1,0 +1,118 @@
+from pathlib import Path
+
+path = Path('app3.js')
+text = path.read_text(encoding='utf-8')
+
+if 'function semesterWeeks()' in text:
+    print('Semester distribution already patched')
+    raise SystemExit(0)
+
+text = text.replace('function runValidation(show=true){const weeks=targetAnnual();', 'function runValidation(show=true){const weeks=semesterWeeks();')
+
+start = text.index('  function generateDistributions(){')
+render_start = text.index('  function renderDistributions(){', start)
+backup_start = text.index('\n  function backup(){', render_start)
+
+block = r'''  function semesterWeeks(){return Math.max(1,Math.floor(Number(state.settings.weeks||36)/2))}
+  function semesterCapacity(a){return Math.floor(Number(a.weeklyPeriods||0)*semesterWeeks()*.10+1e-9)}
+  function teacherSemesterSectionLimit(t){return Number(t.load||0)<=Math.max(1,Number(state.settings.targetLoad||24)-6)?2:1}
+  function distributionConfig(){state.distributionConfig={secondSemesterMode:'keep',activeSemester:1,...(state.distributionConfig||{})};return state.distributionConfig}
+  function ensureSemesterControls(){
+    const toolbar=$('.distribution-toolbar');if(!toolbar)return;
+    const config=distributionConfig();
+    if(!$('#semesterDistributionStyles')){const style=document.createElement('style');style.id='semesterDistributionStyles';style.textContent=`.semester-control-panel{margin:14px 0 0;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--surface-soft);display:grid;gap:12px}.semester-control-panel>strong{color:var(--navy-950);font-size:13px}.semester-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.semester-mode-option{display:flex;align-items:flex-start;gap:9px;padding:12px;border:1px solid var(--border);border-radius:13px;background:#fff;cursor:pointer}.semester-mode-option:has(input:checked){border-color:var(--teal-500);background:var(--teal-100);box-shadow:inset -3px 0 0 var(--teal-600)}.semester-mode-option input{margin-top:3px;accent-color:var(--teal-700)}.semester-mode-option strong,.semester-mode-option small{display:block}.semester-mode-option strong{font-size:12px;color:var(--navy-950)}.semester-mode-option small{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.7}.semester-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.semester-tab{padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--muted);font-weight:800}.semester-tab.active{background:var(--navy-900);border-color:var(--navy-900);color:#fff}.semester-rule-note{padding:12px 14px;border:1px solid #c9e5e7;border-radius:13px;background:var(--teal-100);color:var(--teal-700);font-size:11px;line-height:1.8}.semester-source-range{display:inline-flex;margin-top:5px;padding:4px 8px;border-radius:999px;background:var(--surface-soft);color:var(--teal-700);font-size:10px;font-weight:800}.semester-incomplete{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--activity-soft);color:var(--danger);font-size:11px;font-weight:700}@media(max-width:700px){.semester-mode-options{grid-template-columns:1fr}.semester-tabs{display:grid;grid-template-columns:1fr 1fr}.semester-tab{width:100%}}`;document.head.appendChild(style)}
+    if(!$('#semesterDistributionControls')){const controls=document.createElement('div');controls.id='semesterDistributionControls';controls.className='semester-control-panel';controls.innerHTML=`<strong>طريقة توزيع الفصل الدراسي الثاني</strong><div class="semester-mode-options"><label class="semester-mode-option"><input type="radio" name="secondSemesterMode" value="keep"><span><strong>الإبقاء على توزيع الفصل الأول</strong><small>نفس المعلمين والمواد والشعب في الأسابيع الثمانية عشر التالية.</small></span></label><label class="semester-mode-option"><input type="radio" name="secondSemesterMode" value="different"><span><strong>إنشاء توزيع مختلف</strong><small>يعيد المقارنة مع تفضيل معلمين ومواد مختلفة قدر الإمكان.</small></span></label></div><div class="semester-rule-note">يفترض النظام أن حصة النشاط في وقت موحد؛ لذلك لا يُسند المعلم إلى شعبتين في الأسبوع نفسه، ولا يُستخدم في أكثر من شعبة خلال الفصل إلا عندما يكون نصابه منخفضًا جدًا.</div>`;toolbar.appendChild(controls);controls.addEventListener('change',e=>{if(e.target.name==='secondSemesterMode'){config.secondSemesterMode=e.target.value;scheduleSave();toast('تم حفظ طريقة الفصل الثاني. أعد التوزيع لتطبيقها.','success')}})}
+    $$('[name="secondSemesterMode"]').forEach(input=>input.checked=input.value===config.secondSemesterMode)
+  }
+  function semesterSourceGroups(sectionId){
+    const groups=new Map();
+    state.teachers.filter(t=>!t.excluded&&teacherComplete(t)).forEach(t=>(t.assignments||[]).filter(a=>a.sectionId===sectionId).forEach(a=>{const capacity=semesterCapacity(a);if(!capacity)return;const group=groups.get(t.id)||{teacher:t,assignments:[],totalCapacity:0,maxPeriods:0};group.assignments.push({id:a.id,teacherId:t.id,teacherName:t.name,specialty:t.specialty,subject:a.subject,weeklyPeriods:Number(a.weeklyPeriods),capacity,remaining:capacity});group.totalCapacity+=capacity;group.maxPeriods=Math.max(group.maxPeriods,Number(a.weeklyPeriods));groups.set(t.id,group)}));
+    return [...groups.values()]
+  }
+  function cloneSemesterDistribution(firstMap){
+    const length=semesterWeeks();const cloned=new Map();
+    firstMap.forEach((item,sectionId)=>{cloned.set(sectionId,{...item,semester:2,weeks:item.weeks.map(w=>({...w,semester:2,annualWeek:length+w.semesterWeek})),summary:item.summary.map(x=>({...x})),mode:'keep'})});
+    return cloned
+  }
+  function distributeSemester(semester,ready,firstMap=null){
+    const length=semesterWeeks();
+    const teacherWeekUse=new Map();
+    const teacherSections=new Map();
+    const teacherActivityCount=new Map();
+    const firstPairs=new Map();
+    if(firstMap)firstMap.forEach((item,sectionId)=>firstPairs.set(sectionId,new Set(item.summary.map(x=>`${x.teacherId}|${x.subject}`))));
+    const models=allSections().filter(s=>ready.has(s.id)).map(section=>{const groups=semesterSourceGroups(section.id);return{section,groups,teacherCount:groups.length,totalCapacity:groups.reduce((sum,g)=>sum+g.totalCapacity,0)}}).sort((a,b)=>a.teacherCount-b.teacherCount||a.totalCapacity-b.totalCapacity||a.section.label.localeCompare(b.section.label,'ar'));
+    const result=new Map();
+    for(const model of models){
+      const slots=Array(length).fill(null);
+      const candidates=model.groups.flatMap(group=>group.assignments.map(a=>({...a,teacher:group.teacher})));
+      const blocks=[];
+      const closedSources=new Set();
+      let lastSourceId='';
+      let lastTeacherId='';
+      while(true){
+        const start=slots.findIndex(x=>!x);if(start<0)break;
+        const available=candidates.map(candidate=>{
+          if(candidate.remaining<=0||closedSources.has(candidate.id))return null;
+          const sectionSet=teacherSections.get(candidate.teacherId)||new Set();
+          const limit=teacherSemesterSectionLimit(candidate.teacher);
+          if(!sectionSet.has(model.section.id)&&sectionSet.size>=limit)return null;
+          if(teacherWeekUse.has(`${candidate.teacherId}|${start+1}`))return null;
+          let run=0;while(start+run<length&&!slots[start+run]&&!teacherWeekUse.has(`${candidate.teacherId}|${start+run+1}`)&&run<candidate.remaining)run+=1;
+          if(!run)return null;
+          const sameSection=sectionSet.has(model.section.id)?1:0;
+          const sameTeacher=candidate.teacherId===lastTeacherId?1:0;
+          const firstSet=firstPairs.get(model.section.id)||new Set();
+          const repeatedPair=firstSet.has(`${candidate.teacherId}|${candidate.subject}`)?1:0;
+          const repeatedTeacher=[...firstSet].some(pair=>pair.startsWith(`${candidate.teacherId}|`))?1:0;
+          const load=Number(candidate.teacher.load||state.settings.targetLoad||24);
+          const lowLoadAdvantage=Math.max(0,Number(state.settings.targetLoad||24)-load);
+          const score=sameSection*100000+sameTeacher*50000+Number(candidate.weeklyPeriods)*1000+lowLoadAdvantage*120+candidate.remaining*12+run-(semester===2?repeatedPair*25000+repeatedTeacher*8000:0)-(teacherActivityCount.get(candidate.teacherId)||0)*4;
+          return{candidate,run,score}
+        }).filter(Boolean).sort((a,b)=>b.score-a.score);
+        if(!available.length)break;
+        const selected=available[0];
+        if(lastSourceId&&lastSourceId!==selected.candidate.id)closedSources.add(lastSourceId);
+        const size=Math.min(selected.run,selected.candidate.remaining,length-start);
+        const block={teacherId:selected.candidate.teacherId,teacherName:selected.candidate.teacherName,subject:selected.candidate.subject,weeklyPeriods:selected.candidate.weeklyPeriods,used:size,capacity:selected.candidate.capacity,startWeek:start+1,endWeek:start+size};
+        blocks.push(block);
+        for(let offset=0;offset<size;offset+=1){const semesterWeek=start+offset+1;slots[start+offset]={semester,semesterWeek,annualWeek:(semester-1)*length+semesterWeek,teacherId:selected.candidate.teacherId,teacherName:selected.candidate.teacherName,specialty:selected.candidate.specialty,subject:selected.candidate.subject,weeklyPeriods:selected.candidate.weeklyPeriods,capacity:selected.candidate.capacity}}
+        selected.candidate.remaining-=size;
+        const sectionSet=teacherSections.get(selected.candidate.teacherId)||new Set();sectionSet.add(model.section.id);teacherSections.set(selected.candidate.teacherId,sectionSet);
+        for(let week=start+1;week<=start+size;week+=1)teacherWeekUse.set(`${selected.candidate.teacherId}|${week}`,model.section.id);
+        teacherActivityCount.set(selected.candidate.teacherId,(teacherActivityCount.get(selected.candidate.teacherId)||0)+size);
+        lastSourceId=selected.candidate.id;lastTeacherId=selected.candidate.teacherId
+      }
+      const weeks=slots.filter(Boolean);
+      result.set(model.section.id,{semester,sectionId:model.section.id,sectionLabel:model.section.label,weeks,summary:blocks,complete:weeks.length===length,missing:length-weeks.length,mode:semester===1?'first':'different'})
+    }
+    return result
+  }
+  function generateDistributions(){
+    runValidation(false);
+    const ready=new Set((state.validation.sections||[]).filter(x=>x.status==='eligible').map(x=>x.sectionId));
+    if(!ready.size)return toast('لا توجد فصول جاهزة للتوزيع. راجع الإسنادات أولًا.','warning');
+    const config=distributionConfig();
+    const firstMap=distributeSemester(1,ready,null);
+    const secondMap=config.secondSemesterMode==='keep'?cloneSemesterDistribution(firstMap):distributeSemester(2,ready,firstMap);
+    state.distributions=allSections().filter(s=>ready.has(s.id)).map(section=>({id:uid('distribution'),sectionId:section.id,sectionLabel:section.label,semesters:[firstMap.get(section.id),secondMap.get(section.id)]}));
+    config.activeSemester=1;
+    renderDistributions();renderDashboard();updateNav();scheduleSave();
+    const firstComplete=[...firstMap.values()].filter(x=>x.complete).length,secondComplete=[...secondMap.values()].filter(x=>x.complete).length;
+    toast(`الفصل الأول: ${ar(firstComplete)} مكتمل · الفصل الثاني: ${ar(secondComplete)} مكتمل`,(firstComplete&&secondComplete)?'success':'warning')
+  }
+  function renderDistributions(){
+    ensureSemesterControls();const root=$('#distributionResults');const config=distributionConfig();
+    if(!state.distributions.length){root.className='distribution-results empty-state panel';root.innerHTML='<div class="empty-icon activity-empty">●</div><h3>لم يتم إنشاء توزيع بعد</h3><p>سيُنشأ توزيع مستقل لـ١٨ أسبوعًا في كل فصل دراسي، دون تعارض المعلم بين الشعب.</p>';return}
+    if(state.distributions.some(item=>!Array.isArray(item.semesters))){root.className='distribution-results empty-state panel';root.innerHTML='<div class="empty-icon activity-empty">●</div><h3>النتائج المحفوظة أُنشئت بالنظام السابق</h3><p>اضغط مسح النتائج ثم ابدأ التوزيع لإنشاء فصلين دراسيين مستقلين.</p>';return}
+    const active=Number(config.activeSemester||1);const semesterLabel=active===1?'الفصل الدراسي الأول':'الفصل الدراسي الثاني';
+    const current=state.distributions.map(item=>({...item,semester:item.semesters.find(s=>s.semester===active)}));
+    const complete=current.filter(x=>x.semester?.complete).length;const uniqueTeachers=new Set(current.flatMap(x=>x.semester?.weeks||[]).map(w=>w.teacherId));
+    root.className='distribution-results panel';
+    root.innerHTML=`<div class="semester-tabs"><button class="semester-tab ${active===1?'active':''}" data-semester-tab="1">الفصل الدراسي الأول · ١٨ أسبوعًا</button><button class="semester-tab ${active===2?'active':''}" data-semester-tab="2">الفصل الدراسي الثاني · ١٨ أسبوعًا</button></div><div class="global-distribution-summary"><div><span class="section-kicker">${semesterLabel}</span><h3>توزيع موحد بلا تعارض بين الشعب</h3><p>تبدأ المقارنة بالمواد الأعلى حصصًا، ثم تقارن أنصبة المعلمين، ويُثبت المعلم على شعبة واحدة في الأسبوع نفسه.</p></div><div class="global-metrics"><span><strong>${ar(complete)}</strong> فصل مكتمل</span><span><strong>${ar(uniqueTeachers.size)}</strong> معلم مشارك</span><span><strong>٠</strong> تعارض زمني</span></div></div>${current.map(item=>{const sem=item.semester;return`<article class="section-distribution-card"><div class="distribution-card-head"><div><span class="section-kicker">الفصل المستفيد</span><h3>${safe(item.sectionLabel)}</h3><p>${sem.complete?`اكتمل توزيع ${ar(semesterWeeks())} أسبوعًا`:`تبقى ${ar(sem.missing)} أسابيع دون معلم متاح`}</p></div><span class="status-chip ${sem.complete?'status-complete':'status-error'}">${sem.complete?'جاهز':'ناقص'}</span></div><div class="distribution-body section-result-body"><div><div class="subsection-heading"><div><h3>المواد والمعلمون</h3><p>فترات متصلة مع أولوية المادة الأعلى وعدد شعب أقل لكل معلم.</p></div></div><div class="source-summary-list">${sem.summary.map(x=>`<div class="source-summary-item"><div><strong>${safe(x.subject)}</strong><small>${safe(x.teacherName)} · مستخدم ${ar(x.used)} من ${ar(x.capacity)}</small><span class="semester-source-range">الأسابيع ${ar(x.startWeek)}–${ar(x.endWeek)}</span></div><div class="adjustment-equation"><b>${ar(x.weeklyPeriods)}</b><i>←</i><span>${ar(Math.max(0,x.weeklyPeriods-1))} مادة</span><em>+ ١ نشاط</em><u>الفرق -١ / +١</u></div></div>`).join('')||'<div class="semester-incomplete">لم يتوفر معلم صالح دون تعارض لهذه الشعبة.</div>'}</div>${!sem.complete?`<div class="semester-incomplete">سبب النقص: لا يمكن إسناد المعلم نفسه لشعبتين في الأسبوع ذاته، والمعلم ذو النصاب الكامل يُحجز لشعبة واحدة خلال الفصل.</div>`:''}</div><div><div class="subsection-heading"><div><h3>أسابيع ${semesterLabel}</h3><p>رقم الأسبوع داخل الفصل والرقم السنوي المقابل.</p></div></div><div class="weeks-grid">${sem.weeks.map(w=>`<div class="week-item"><strong>الأسبوع ${ar(w.semesterWeek)}</strong><span>${safe(w.subject)}</span><small>${safe(w.teacherName)} · سنوي ${ar(w.annualWeek)}</small><div class="week-difference">${ar(w.weeklyPeriods)} ← ${ar(Math.max(0,w.weeklyPeriods-1))} مادة + ١ نشاط</div></div>`).join('')}</div></div></div></article>`}).join('')}`;
+    $$('.semester-tab',root).forEach(button=>button.addEventListener('click',()=>{config.activeSemester=Number(button.dataset.semesterTab);scheduleSave();renderDistributions()}))
+  }
+'''
+
+path.write_text(text[:start] + block + text[backup_start:], encoding='utf-8')
+print('Semester distribution patched')
