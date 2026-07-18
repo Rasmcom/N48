@@ -107,8 +107,20 @@ async function runScenario(name, contextOptions) {
 
   await openNav('distribution');
   await page.locator('#generateDistributionBtn').click();
-  await page.waitForTimeout(100);
+  await page.waitForTimeout(150);
   assert.ok(await page.locator('#distributionResults').innerText(), `${name}: distribution renders`);
+
+  const firstCard = page.locator('.section-distribution-card').first();
+  const weekSubjects = await firstCard.locator('.week-item > span').allTextContents();
+  assert.equal(weekSubjects.length, 36, `${name}: 36 activity weeks generated`);
+
+  const seenBlocks = [];
+  for (const subject of weekSubjects.map(value => value.trim())) {
+    if (seenBlocks.at(-1) !== subject) seenBlocks.push(subject);
+  }
+  assert.equal(new Set(seenBlocks).size, seenBlocks.length, `${name}: a subject never returns after its block ends`);
+  assert.equal(weekSubjects.slice(0, 28).every(subject => subject.trim() === 'القرآن الكريم والدراسات الإسلامية'), true, `${name}: highest-capacity subject continues for its full allowance`);
+  assert.equal(seenBlocks.length <= 3, true, `${name}: distribution uses the minimum practical number of continuous sources`);
 
   if (errors.length) throw new Error(`${name}: browser errors\n${errors.join('\n')}`);
   await browser.close();
