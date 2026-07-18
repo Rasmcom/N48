@@ -1,0 +1,46 @@
+name: Wire teacher selection assets
+
+on:
+  push:
+    branches:
+      - dev/school-setup-import
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/school-setup-import
+
+      - name: Add selection assets to index
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          if 'import-selection.css' not in text:
+              text = text.replace('<link rel="stylesheet" href="ui-hotfix.css" />', '<link rel="stylesheet" href="ui-hotfix.css" />\n  <link rel="stylesheet" href="import-selection.css" />')
+          if 'import-selection.js' not in text:
+              text = text.replace('<script defer src="app3.js"></script>', '<script defer src="import-selection.js"></script>\n  <script defer src="app3.js"></script>')
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate scripts
+        run: |
+          node --check import-selection.js
+          node --check app3.js
+          node --check ui-hotfix.js
+
+      - name: Commit index wiring
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "feat: enable teacher selection before import preview"
+          git push origin HEAD:dev/school-setup-import
