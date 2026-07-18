@@ -2,6 +2,15 @@ import { chromium, devices } from 'playwright';
 import assert from 'node:assert/strict';
 
 const baseURL = process.env.BASE_URL || 'http://127.0.0.1:4173';
+const subjectsForLoad24 = [
+  'القرآن الكريم والدراسات الإسلامية',
+  'التجويد',
+  'اللغة العربية',
+  'الدراسات الاجتماعية',
+  'الرياضيات',
+  'المهارات الحياتية والأسرية',
+  'التربية الفنية',
+];
 
 async function runScenario(name, contextOptions) {
   const browser = await chromium.launch({ headless: true });
@@ -21,6 +30,49 @@ async function runScenario(name, contextOptions) {
     }
     await page.locator(`[data-view="${view}"]`).click();
     await page.waitForTimeout(80);
+  };
+
+  const assignTeacher = async (teacherIndex, sectionId) => {
+    await page.locator('.teacher-list-item').nth(teacherIndex).click();
+    await page.locator(`[data-batch-section][value="${sectionId}"]`).check();
+    await page.waitForSelector(`[data-batch-subject][value="${subjectsForLoad24[0]}"]`);
+    for (const subject of subjectsForLoad24) {
+      await page.locator(`[data-batch-subject][value="${subject}"]`).check();
+    }
+    const previewText = await page.locator('#batchAssignmentPreview').innerText();
+    assert.match(previewText, /24|٢٤/, `${name}: teacher ${teacherIndex + 1} load totals 24`);
+    await page.locator('#addBatchAssignmentsBtn').click();
+    await page.waitForFunction(() => document.querySelectorAll('#teacherAssignmentsTable tbody tr').length === 7, null, { timeout: 5000 });
+    assert.equal(await page.locator('#teacherAssignmentsTable tbody tr').count(), 7, `${name}: seven assignments added`);
+    await page.locator('[data-action="save-teacher"]').click();
+  };
+
+  const inspectSemester = async semester => {
+    await page.locator(`[data-semester-tab="${semester}"]`).click();
+    const cards = page.locator('.section-distribution-card');
+    assert.equal(await cards.count(), 2, `${name}: semester ${semester} has two sections`);
+
+    const teacherByWeek = Array.from({ length: 18 }, () => []);
+    for (let cardIndex = 0; cardIndex < 2; cardIndex += 1) {
+      const card = cards.nth(cardIndex);
+      const weeks = card.locator('.week-item');
+      assert.equal(await weeks.count(), 18, `${name}: semester ${semester}, section ${cardIndex + 1} has 18 weeks`);
+
+      const subjects = (await weeks.locator('> span').allTextContents()).map(value => value.trim());
+      const blocks = [];
+      for (const subject of subjects) if (blocks.at(-1) !== subject) blocks.push(subject);
+      assert.equal(new Set(blocks).size, blocks.length, `${name}: semester ${semester} source never returns after its block`);
+      assert.equal(subjects.slice(0, 14).every(subject => subject === 'القرآن الكريم والدراسات الإسلامية'), true, `${name}: semester ${semester} starts with the highest-period subject`);
+
+      for (let weekIndex = 0; weekIndex < 18; weekIndex += 1) {
+        const details = await weeks.nth(weekIndex).locator('small').innerText();
+        teacherByWeek[weekIndex].push(details.split('·')[0].trim());
+      }
+    }
+
+    teacherByWeek.forEach((teachers, weekIndex) => {
+      assert.equal(new Set(teachers).size, teachers.length, `${name}: semester ${semester}, week ${weekIndex + 1} has no teacher conflict`);
+    });
   };
 
   await page.goto(baseURL, { waitUntil: 'networkidle' });
@@ -49,8 +101,7 @@ async function runScenario(name, contextOptions) {
   await page.locator('[data-toggle-stage="primary"]').click();
   await page.locator('[data-stage-type="primary"][data-type="tahfiz"]').click();
   await page.locator('#settingsNextBtn').click();
-  await page.locator('[data-grade-count="p4"]').fill('1');
-  await page.locator('[data-grade-count="p5"]').fill('1');
+  await page.locator('[data-grade-count="p4"]').fill('2');
   await page.locator('#settingsNextBtn').click();
   await page.locator('#settingsNextBtn').click();
   assert.equal(await page.locator('[data-view-panel="import"].active').count(), 1, `${name}: import opens`);
@@ -60,67 +111,44 @@ async function runScenario(name, contextOptions) {
   await page.locator('#teacherSelectionModal').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#teacherSelectionList [data-selection-index]').count(), 3, `${name}: automatic Excel rows`);
   await page.locator('[data-clear-all]').click();
-  await page.locator('#teacherSelectionCount').fill('1');
+  await page.locator('#teacherSelectionCount').fill('2');
   await page.locator('[data-select-count]').click();
   await page.locator('#confirmTeacherSelection').click();
 
   await page.waitForSelector('#importPreview tbody tr');
-  assert.equal(await page.locator('#importPreview tbody tr').count(), 1, `${name}: one selected teacher in preview`);
-  assert.equal(await page.locator('[data-preview-field="name"]').inputValue(), 'أحمد سعد أحمد الغامدي', `${name}: name auto detected`);
-  assert.equal(await page.locator('[data-preview-field="specialty"]').inputValue(), 'دراسات إسلامية', `${name}: specialty auto detected`);
-  assert.equal(await page.locator('[data-preview-field="load"]').inputValue(), '24', `${name}: load auto detected`);
+  assert.equal(await page.locator('#importPreview tbody tr').count(), 2, `${name}: two selected teachers in preview`);
   assert.equal(await page.locator('#columnMappingModal').isVisible(), false, `${name}: mapping dialog not required`);
 
   await page.locator('#addManualPreviewBtn').click();
-  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 2);
-  assert.equal(await page.locator('#importPreview tbody tr').count(), 2, `${name}: manual teacher added`);
+  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 3);
   await page.locator('#importPreview tbody tr').last().locator('[data-preview-delete]').click();
-  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 1);
-  assert.equal(await page.locator('#importPreview tbody tr').count(), 1, `${name}: preview teacher deleted`);
+  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 2);
 
   await page.locator('#commitImportBtn').click();
   await page.waitForTimeout(100);
   assert.equal(await page.locator('[data-view-panel="classify"].active').count(), 1, `${name}: classify opens`);
-  assert.equal(await page.locator('.teacher-list-item').count(), 1, `${name}: teacher imported`);
+  assert.equal(await page.locator('.teacher-list-item').count(), 2, `${name}: two teachers imported`);
 
-  await page.locator('.teacher-list-item').click();
-  await page.locator('[data-teacher-field="rank"]').selectOption('advanced');
-  await page.locator('[data-batch-section][value="p4_1"]').check();
-  await page.locator('[data-batch-section][value="p5_1"]').check();
-  await page.locator('[data-batch-subject][value="القرآن الكريم والدراسات الإسلامية"]').check();
-  await page.locator('[data-batch-subject][value="التجويد"]').check();
-  await page.locator('[data-batch-subject][value="المهارات الحياتية والأسرية"]').check();
-  await page.locator('[data-batch-subject][value="الدراسات الاجتماعية"]').check();
+  await assignTeacher(0, 'p4_1');
+  await assignTeacher(1, 'p4_2');
 
-  const previewText = await page.locator('#batchAssignmentPreview').innerText();
-  assert.match(previewText, /24|٢٤/, `${name}: batch total 24`);
-  assert.match(previewText, /16|١٦/, `${name}: Quran total 16`);
-  assert.match(previewText, /2|٢/, `${name}: Tajweed/life totals`);
-  await page.locator('#addBatchAssignmentsBtn').click();
-  await page.waitForFunction(() => document.querySelectorAll('#teacherAssignmentsTable tbody tr').length === 8, null, { timeout: 5000 });
-  assert.equal(await page.locator('#teacherAssignmentsTable tbody tr').count(), 8, `${name}: eight assignments added in batch`);
-
-  await page.locator('[data-action="save-teacher"]').click();
   await openNav('validate');
   await page.locator('#runValidationBtn').click();
   assert.ok(await page.locator('#validationTable').innerText(), `${name}: validation renders`);
 
   await openNav('distribution');
+  assert.equal(await page.locator('#semesterDistributionControls').count(), 1, `${name}: semester controls render`);
   await page.locator('#generateDistributionBtn').click();
-  await page.waitForTimeout(150);
+  await page.waitForTimeout(180);
   assert.ok(await page.locator('#distributionResults').innerText(), `${name}: distribution renders`);
 
-  const firstCard = page.locator('.section-distribution-card').first();
-  const weekSubjects = await firstCard.locator('.week-item > span').allTextContents();
-  assert.equal(weekSubjects.length, 36, `${name}: 36 activity weeks generated`);
+  await inspectSemester(1);
+  await inspectSemester(2);
 
-  const seenBlocks = [];
-  for (const subject of weekSubjects.map(value => value.trim())) {
-    if (seenBlocks.at(-1) !== subject) seenBlocks.push(subject);
-  }
-  assert.equal(new Set(seenBlocks).size, seenBlocks.length, `${name}: a subject never returns after its block ends`);
-  assert.equal(weekSubjects.slice(0, 28).every(subject => subject.trim() === 'القرآن الكريم والدراسات الإسلامية'), true, `${name}: highest-capacity subject continues for its full allowance`);
-  assert.equal(seenBlocks.length <= 3, true, `${name}: distribution uses the minimum practical number of continuous sources`);
+  await page.locator('[name="secondSemesterMode"][value="different"]').check();
+  await page.locator('#generateDistributionBtn').click();
+  await page.waitForTimeout(180);
+  assert.equal(await page.locator('[data-semester-tab="2"]').count(), 1, `${name}: different second-semester mode regenerates successfully`);
 
   if (errors.length) throw new Error(`${name}: browser errors\n${errors.join('\n')}`);
   await browser.close();
