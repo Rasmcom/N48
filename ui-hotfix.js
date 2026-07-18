@@ -45,10 +45,10 @@
       return nativeSort.call(this, compareFn);
     };
 
-    queueMicrotask(() => {
+    setTimeout(() => {
       Array.prototype.sort = nativeSort;
       nativeSort = null;
-    });
+    }, 0);
   }
 
   function decorateDistributionRanges(root = document) {
