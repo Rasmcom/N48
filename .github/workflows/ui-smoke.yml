@@ -8,9 +8,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -18,91 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Patch contiguous activity distribution
-        if: ${{ github.event_name == 'push' }}
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          path = Path('app3.js')
-          text = path.read_text(encoding='utf-8')
-          start = text.index('  function generateDistributions(){')
-          render_start = text.index('  function renderDistributions(){', start)
-          backup_start = text.index('\n  function backup(){', render_start)
-
-          generate = r'''  function generateDistributions(){
-            runValidation(false);
-            const ready=new Set((state.validation.sections||[]).filter(x=>x.status==='eligible').map(x=>x.sectionId));
-            if(!ready.size)return toast('لا توجد فصول جاهزة للتوزيع. راجع الإسنادات أولًا.','warning');
-            const teacherUse=new Map();
-            const results=[];
-            const activeTeachers=state.teachers.filter(t=>!t.excluded&&teacherComplete(t));
-            const annualTarget=targetAnnual();
-            for(const section of allSections().filter(s=>ready.has(s.id))){
-              const candidates=[];
-              activeTeachers.forEach(t=>(t.assignments||[]).filter(a=>a.sectionId===section.id).forEach(a=>candidates.push({id:a.id,teacherId:t.id,teacherName:t.name,specialty:t.specialty,subject:a.subject,weeklyPeriods:Number(a.weeklyPeriods),capacity:assignmentCapacity(a),used:0,startWeek:null,endWeek:null})));
-              candidates.sort((a,b)=>{
-                const matchA=specialtyMatch(a.specialty,a.subject)?1:0;
-                const matchB=specialtyMatch(b.specialty,b.subject)?1:0;
-                if(matchA!==matchB)return matchB-matchA;
-                if(a.capacity!==b.capacity)return b.capacity-a.capacity;
-                const useA=teacherUse.get(a.teacherId)||0;
-                const useB=teacherUse.get(b.teacherId)||0;
-                if(useA!==useB)return useA-useB;
-                return a.subject.localeCompare(b.subject,'ar');
-              });
-              const weeks=[];
-              let week=1;
-              for(const candidate of candidates){
-                if(weeks.length>=annualTarget)break;
-                const blockSize=Math.min(candidate.capacity,annualTarget-weeks.length);
-                if(blockSize<=0)continue;
-                candidate.startWeek=week;
-                candidate.used=blockSize;
-                for(let i=0;i<blockSize;i+=1){
-                  weeks.push({week,teacherId:candidate.teacherId,teacherName:candidate.teacherName,specialty:candidate.specialty,subject:candidate.subject,weeklyPeriods:candidate.weeklyPeriods,capacity:candidate.capacity,blockStart:candidate.startWeek,blockEnd:candidate.startWeek+blockSize-1});
-                  week+=1;
-                }
-                candidate.endWeek=week-1;
-                teacherUse.set(candidate.teacherId,(teacherUse.get(candidate.teacherId)||0)+blockSize);
-              }
-              const summary=candidates.filter(c=>c.used>0).map(c=>({teacherId:c.teacherId,teacherName:c.teacherName,subject:c.subject,weeklyPeriods:c.weeklyPeriods,used:c.used,capacity:c.capacity,startWeek:c.startWeek,endWeek:c.endWeek}));
-              results.push({id:uid('distribution'),sectionId:section.id,sectionLabel:section.label,weeks,summary,complete:weeks.length===annualTarget});
-            }
-            state.distributions=results;
-            renderDistributions();
-            renderDashboard();
-            updateNav();
-            scheduleSave();
-            const complete=results.filter(x=>x.complete).length;
-            toast(`تم توزيع حصة النشاط على ${ar(complete)} فصلًا بفترات متصلة`,'success');
-          }
-'''
-
-          render = r'''  function renderDistributions(){
-            const root=$('#distributionResults');
-            if(!state.distributions.length){root.className='distribution-results empty-state panel';root.innerHTML='<div class="empty-icon activity-empty">●</div><h3>لم يتم إنشاء توزيع بعد</h3><p>يتحقق النظام من جميع المعلمين والتخصصات ثم يختار المادة المختصر منها لكل فصل.</p>';return}
-            root.className='distribution-results panel';
-            const teacherTotals=new Map();
-            state.distributions.flatMap(x=>x.weeks).forEach(w=>teacherTotals.set(w.teacherName,(teacherTotals.get(w.teacherName)||0)+1));
-            root.innerHTML=`<div class="global-distribution-summary"><div><span class="section-kicker">نتيجة المقارنة الشاملة</span><h3>توزيع ثابت بفترات متصلة لكل فصل</h3><p>يثبت النظام المادة والمعلم في أسابيع متتابعة حتى استهلاك الرصيد المسموح، ثم ينتقل إلى إسناد آخر عند الحاجة دون تجاوز ١٠٪.</p></div><div class="global-metrics"><span><strong>${ar(state.distributions.length)}</strong> فصل</span><span><strong>${ar(state.distributions.reduce((s,x)=>s+x.weeks.length,0))}</strong> حصة نشاط</span><span><strong>${ar(teacherTotals.size)}</strong> معلم مشارك</span></div></div>${state.distributions.map(item=>`<article class="section-distribution-card"><div class="distribution-card-head"><div><span class="section-kicker">الفصل المستفيد</span><h3>${safe(item.sectionLabel)}</h3><p>${item.complete?`تم إنشاء ٣٦ حصة نشاط عبر ${ar(item.summary.length)} إسناد متصل`:'التوزيع غير مكتمل'}</p></div><span class="status-chip ${item.complete?'status-complete':'status-error'}">${item.complete?'جاهز':'ناقص'}</span></div><div class="distribution-body section-result-body"><div><div class="subsection-heading"><div><h3>المادة المختصر منها والفرق</h3><p>كل مادة تستمر في فترة متصلة قبل الانتقال إلى المادة التالية.</p></div></div><div class="source-summary-list">${item.summary.map(x=>`<div class="source-summary-item"><div><strong>${safe(x.subject)}</strong><small>${safe(x.teacherName)} · مستخدم ${ar(x.used)} من ${ar(x.capacity)} · الأسابيع ${ar(x.startWeek)}–${ar(x.endWeek)}</small></div><div class="adjustment-equation"><b>${ar(x.weeklyPeriods)}</b><i>←</i><span>${ar(Math.max(0,x.weeklyPeriods-1))} مادة</span><em>+ ١ نشاط</em><u>الفرق -١ / +١</u></div></div>`).join('')}</div></div><div><div class="subsection-heading"><div><h3>التوزيع على أسابيع العام</h3><p>يستمر الإسناد نفسه في الأسابيع المتتابعة حتى ينتهي رصيده.</p></div></div><div class="weeks-grid">${item.weeks.map(w=>`<div class="week-item"><strong>الأسبوع ${ar(w.week)}</strong><span>${safe(w.subject)}</span><small>${safe(w.teacherName)}</small><div class="week-difference">${ar(w.weeklyPeriods)} ← ${ar(Math.max(0,w.weeklyPeriods-1))} مادة + ١ نشاط</div></div>`).join('')}</div></div></div></article>`).join('')}`;
-          }
-'''
-
-          patched = text[:start] + generate + render + text[backup_start:]
-          if patched != text:
-              path.write_text(patched, encoding='utf-8')
-          PY
-          node --check app3.js
-          if ! git diff --quiet -- app3.js; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add app3.js
-            git commit -m "fix: keep each activity source in a continuous weekly block"
-            git push origin HEAD:dev/school-setup-import
-          fi
 
       - name: Setup Node
         uses: actions/setup-node@v4
