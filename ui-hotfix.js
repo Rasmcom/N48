@@ -52,7 +52,11 @@
   }
 
   function decorateDistributionRanges(root = document) {
-    root.querySelectorAll?.('.section-distribution-card').forEach((card) => {
+    const cards = [];
+    if (root instanceof Element && root.matches('.section-distribution-card')) cards.push(root);
+    cards.push(...(root.querySelectorAll?.('.section-distribution-card') || []));
+
+    cards.forEach((card) => {
       const weeks = [...card.querySelectorAll('.week-item')];
       if (!weeks.length) return;
 
