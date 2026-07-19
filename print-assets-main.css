@@ -1,0 +1,7 @@
+/* الأصول الأصلية المرفوعة في فرع main */
+.activity-print-band.top{
+  background-image:url('https://raw.githubusercontent.com/Rasmcom/N48/main/background4.jpg'),linear-gradient(90deg,#15445a,#3d7eb9,#0da9a6,#07a869)!important;
+}
+.activity-print-band.bottom{
+  background-image:url('https://raw.githubusercontent.com/Rasmcom/N48/main/background5.jpg'),linear-gradient(90deg,#07a869,#0da9a6,#3d7eb9,#15445a)!important;
+}
