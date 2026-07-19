@@ -19,36 +19,36 @@
     });
   }
 
-  /* تحميل صفحة الطباعة كجزء مستقل حتى لا تؤثر في منطق التوزيع. */
-  function loadPrintModule() {
-    if (!document.querySelector('link[data-activity-print-style]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'print-page.css';
-      link.dataset.activityPrintStyle = '1';
-      document.head.appendChild(link);
-    }
+  function addStyle(href, attribute) {
+    if (document.querySelector(`link[${attribute}]`)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = href;
+    link.setAttribute(attribute, '1');
+    document.head.appendChild(link);
+  }
 
-    if (!document.querySelector('link[data-original-print-assets]')) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'print-assets-main.css';
-      link.dataset.originalPrintAssets = '1';
-      document.head.appendChild(link);
-    }
+  function addScript(src, attribute) {
+    if (document.querySelector(`script[${attribute}]`)) return;
+    const script = document.createElement('script');
+    script.src = src;
+    script.defer = true;
+    script.setAttribute(attribute, '1');
+    document.head.appendChild(script);
+  }
 
-    if (!document.querySelector('script[data-activity-print-script]')) {
-      const script = document.createElement('script');
-      script.src = 'print-page.js';
-      script.defer = true;
-      script.dataset.activityPrintScript = '1';
-      document.head.appendChild(script);
-    }
+  /* تحميل صفحة الطباعة وتقرير المشاركة كوحدات مستقلة. */
+  function loadModules() {
+    addStyle('print-page.css', 'data-activity-print-style');
+    addStyle('print-assets-main.css', 'data-original-print-assets');
+    addStyle('distribution-report.css', 'data-distribution-report-style');
+    addScript('print-page.js', 'data-activity-print-script');
+    addScript('distribution-report.js', 'data-distribution-report-script');
   }
 
   document.addEventListener('DOMContentLoaded', () => {
     normalizeButtons();
-    loadPrintModule();
+    loadModules();
     syncOriginalPrintAssets();
 
     const observer = new MutationObserver((mutations) => {
