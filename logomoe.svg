@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="180" viewBox="0 0 520 180" role="img" aria-label="وزارة التعليم">
+  <rect width="520" height="180" fill="white"/>
+  <g transform="translate(28 20)" fill="#10a99f">
+    <circle cx="70" cy="18" r="8"/><circle cx="45" cy="30" r="7"/><circle cx="95" cy="30" r="7"/>
+    <circle cx="25" cy="50" r="6.5"/><circle cx="55" cy="50" r="7.5"/><circle cx="85" cy="50" r="7.5"/><circle cx="115" cy="50" r="6.5"/>
+    <circle cx="12" cy="75" r="6"/><circle cx="38" cy="75" r="7"/><circle cx="70" cy="75" r="8"/><circle cx="102" cy="75" r="7"/><circle cx="128" cy="75" r="6"/>
+    <circle cx="25" cy="100" r="6.5"/><circle cx="55" cy="100" r="7.5"/><circle cx="85" cy="100" r="7.5"/><circle cx="115" cy="100" r="6.5"/>
+    <circle cx="45" cy="120" r="7"/><circle cx="95" cy="120" r="7"/><circle cx="70" cy="132" r="8"/>
+  </g>
+  <line x1="185" y1="30" x2="185" y2="150" stroke="#aeb8bb" stroke-width="2"/>
+  <text x="220" y="88" font-family="Tahoma,Arial,sans-serif" font-size="44" font-weight="700" fill="#1d5561">وزارة التعليم</text>
+  <text x="220" y="128" font-family="Tahoma,Arial,sans-serif" font-size="22" font-weight="600" fill="#10a99f">المملكة العربية السعودية</text>
+</svg>
