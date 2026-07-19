@@ -26,6 +26,7 @@ jobs:
           node --check app3.js
           node --check ui-hotfix.js
           node --check import-selection.js
+          node --check print-page.js
           node --check tests/ui-smoke.mjs
 
       - name: Install Playwright
