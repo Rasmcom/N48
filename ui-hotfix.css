@@ -98,8 +98,7 @@
   .sidebar-toggle { min-width: 44px; min-height: 44px; }
 }
 
-
-/* Teacher bulk selection */
+/* Teacher bulk selection — verified with balanced semester scheduling */
 .teacher-bulk-toolbar {
   margin: 0 12px 10px;
   padding: 12px;
