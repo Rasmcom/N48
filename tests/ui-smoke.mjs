@@ -152,8 +152,18 @@ async function runScenario(name, contextOptions) {
 
   await page.locator('[name="secondSemesterMode"][value="different"]').check();
   await page.locator('#generateDistributionBtn').click();
-  await page.waitForTimeout(180);
+  await page.waitForTimeout(220);
   assert.equal(await page.locator('[data-semester-tab="2"]').count(), 1, `${name}: different second-semester mode regenerates successfully`);
+
+  await page.waitForSelector('#activityAssignmentsPrintBtn');
+  await page.locator('#activityAssignmentsPrintBtn').click();
+  await page.locator('#activityPrintPreview.show').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('.activity-print-page.portrait').count(), 1, `${name}: portrait A4 print page renders`);
+  assert.equal(await page.locator('.activity-print-table.single thead th').count(), 4, `${name}: short list uses four print columns`);
+  assert.match(await page.locator('.activity-print-table').innerText(), /حصة النشاط|الأسابيع من/, `${name}: print table includes activity and week ranges`);
+  assert.equal(await page.locator('.activity-print-logo img').count(), 1, `${name}: Ministry logo is present`);
+  await page.locator('#closeActivityPrintPreview').click();
+  assert.equal(await page.locator('#activityPrintPreview').isVisible(), false, `${name}: print preview closes`);
 
   if (errors.length) throw new Error(`${name}: browser errors\n${errors.join('\n')}`);
   await browser.close();
