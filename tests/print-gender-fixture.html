@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../print-page.css">
+  <link rel="stylesheet" href="../print-assets-main.css">
+</head>
+<body>
+  <section class="distribution-toolbar"><div class="toolbar-actions"></div></section>
+  <script>
+    window.seedPrintState = async function seedPrintState(gender) {
+      const state = {
+        settings: { schoolName: 'مدرسة الاختبار', gender },
+        distributionConfig: { activeSemester: 1 },
+        teachers: [{ id: 't1', name: gender === 'girls' ? 'المعلمة التجريبية' : 'المعلم التجريبي' }],
+        distributions: [
+          { sectionLabel: 'الرابع الابتدائي/1', semesters: [{ semester: 1, summary: [{ teacherId: 't1', teacherName: gender === 'girls' ? 'المعلمة التجريبية' : 'المعلم التجريبي', subject: 'الرياضيات', startWeek: 1, endWeek: 7 }] }] },
+          { sectionLabel: 'الرابع الابتدائي/2', semesters: [{ semester: 1, summary: [{ teacherId: 't1', teacherName: gender === 'girls' ? 'المعلمة التجريبية' : 'المعلم التجريبي', subject: 'الرياضيات', startWeek: 8, endWeek: 14 }] }] }
+        ]
+      };
+      await new Promise((resolve, reject) => {
+        const request = indexedDB.open('activity10LocalDB', 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('state')) db.createObjectStore('state');
+        };
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('state', 'readwrite');
+          tx.objectStore('state').put(state, 'main');
+          tx.oncomplete = () => { db.close(); resolve(); };
+          tx.onerror = () => { db.close(); reject(tx.error); };
+        };
+      });
+    };
+  </script>
+  <script src="../print-page.js"></script>
+</body>
+</html>
