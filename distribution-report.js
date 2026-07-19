@@ -51,8 +51,10 @@
 
   function firstWeekFromText(text = '') {
     const normalized = normalizeDigits(text);
-    const match = normalized.match(/(?:الأسبوع\s*)?(\d+)/);
-    return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+    const explicit = normalized.match(/الأسبوع\s*(\d+)/);
+    if (explicit) return Number(explicit[1]);
+    const fallback = normalized.match(/(\d+)/);
+    return fallback ? Number(fallback[1]) : Number.MAX_SAFE_INTEGER;
   }
 
   function sortPrintWeekRanges(root = document) {
