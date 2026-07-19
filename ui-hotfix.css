@@ -117,8 +117,8 @@
 .teacher-list-row { display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: stretch; gap: 6px; margin: 0 8px 7px; border-radius: 14px; }
 .teacher-list-row.bulk-selected { background: var(--teal-100); box-shadow: inset -3px 0 0 var(--teal-600); }
 .teacher-list-row .teacher-list-item { width: 100%; margin: 0; }
-.teacher-bulk-check { display: grid; place-items: center; cursor: pointer; }
-.teacher-bulk-check input { position: absolute; opacity: 0; pointer-events: none; }
+.teacher-bulk-check { position: relative; display: grid; place-items: center; cursor: pointer; }
+.teacher-bulk-check input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; z-index: 2; }
 .teacher-bulk-check span { width: 21px; height: 21px; border: 2px solid var(--border-strong); border-radius: 7px; background: #fff; position: relative; }
 .teacher-bulk-check input:checked + span { border-color: var(--teal-700); background: var(--teal-700); }
 .teacher-bulk-check input:checked + span::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 900; }
