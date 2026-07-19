@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../distribution-report.css">
+</head>
+<body>
+  <main>
+    <section id="distributionResults" class="distribution-results panel">
+      <div class="semester-tabs"><button class="semester-tab active" data-semester-tab="1">الفصل الأول</button></div>
+      <div class="global-distribution-summary"><div><h3>ملخص</h3></div><div class="global-metrics"><span><strong>١</strong> معلم مشارك</span></div></div>
+      <article class="section-distribution-card"></article>
+    </section>
+
+    <div id="printFixture" class="activity-assignment-lines">
+      <span class="activity-assignment-line">
+        <b>العلوم</b>
+        <span class="activity-subject-ranges">
+          <small>السادس الابتدائي/1 · من الأسبوع ١٤ إلى ١٨</small>
+          <small>الخامس الابتدائي/2 · من الأسبوع ٨ إلى ١٠</small>
+        </span>
+      </span>
+      <span class="activity-assignment-line">
+        <b>الرياضيات</b>
+        <span class="activity-subject-ranges">
+          <small>الرابع الابتدائي/1 · من الأسبوع ١ إلى ٧</small>
+        </span>
+      </span>
+    </div>
+  </main>
+
+  <script>
+    window.seedDistributionReportState = async function seedDistributionReportState() {
+      const state = {
+        settings: { weeks: 36, targetLoad: 24 },
+        distributionConfig: { activeSemester: 1 },
+        teachers: [
+          { id: 't1', name: 'المعلم الموزع', specialty: 'رياضيات', load: 6, excluded: false, assignments: [{ id: 'a1', sectionId: 'p4_1', subject: 'الرياضيات', weeklyPeriods: 6 }] },
+          { id: 't2', name: 'المعلم غير الموزع', specialty: 'علوم', load: 4, excluded: false, assignments: [{ id: 'a2', sectionId: 'p4_1', subject: 'العلوم', weeklyPeriods: 4 }] },
+          { id: 't3', name: 'المعلم المستثنى', specialty: 'لغة عربية', load: 5, excluded: true, assignments: [{ id: 'a3', sectionId: 'p4_1', subject: 'اللغة العربية', weeklyPeriods: 5 }] }
+        ],
+        distributions: [{
+          sectionId: 'p4_1',
+          sectionLabel: 'الرابع الابتدائي/1',
+          semesters: [
+            { semester: 1, complete: true, weeks: [{ teacherId: 't1' }], summary: [] },
+            { semester: 2, complete: true, weeks: [], summary: [] }
+          ]
+        }]
+      };
+      await new Promise((resolve, reject) => {
+        const request = indexedDB.open('activity10LocalDB', 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains('state')) db.createObjectStore('state');
+        };
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('state', 'readwrite');
+          tx.objectStore('state').put(state, 'main');
+          tx.oncomplete = () => { db.close(); resolve(); };
+          tx.onerror = () => { db.close(); reject(tx.error); };
+        };
+      });
+    };
+  </script>
+  <script src="../distribution-report.js"></script>
+</body>
+</html>
