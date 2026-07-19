@@ -1,0 +1,93 @@
+/* تقرير المعلمين الذين لم يحصلوا على توزيع */
+.undistributed-teachers-panel{
+  margin:16px 0 20px;
+  padding:16px;
+  border:1px solid var(--border);
+  border-radius:18px;
+  background:linear-gradient(180deg,#fff,#f8fbfb);
+  display:grid;
+  gap:13px;
+}
+.undistributed-teachers-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+}
+.undistributed-teachers-head h3{
+  margin:2px 0 4px;
+  color:var(--navy-950);
+  font-size:15px;
+}
+.undistributed-teachers-head p{
+  margin:0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.8;
+}
+.undistributed-count{
+  flex:0 0 auto;
+  min-width:54px;
+  min-height:40px;
+  padding:7px 12px;
+  border-radius:13px;
+  background:var(--activity-soft);
+  color:var(--danger);
+  display:grid;
+  place-items:center;
+  font-size:16px;
+  font-weight:900;
+}
+.undistributed-count.zero{
+  background:var(--success-soft);
+  color:var(--success);
+}
+.undistributed-teachers-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.undistributed-teacher-item{
+  padding:12px 13px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  background:#fff;
+  display:grid;
+  gap:4px;
+}
+.undistributed-teacher-item strong{
+  color:var(--navy-950);
+  font-size:12px;
+}
+.undistributed-teacher-item span{
+  color:var(--teal-700);
+  font-size:10px;
+  font-weight:800;
+}
+.undistributed-teacher-item small{
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.75;
+}
+.undistributed-empty{
+  padding:12px 14px;
+  border:1px solid #bfe5d4;
+  border-radius:13px;
+  background:var(--success-soft);
+  color:var(--success);
+  font-size:11px;
+  font-weight:900;
+}
+.undistributed-note{
+  padding:10px 12px;
+  border-radius:12px;
+  background:var(--surface-soft);
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.8;
+}
+@media(max-width:760px){
+  .undistributed-teachers-head{display:grid}
+  .undistributed-count{justify-self:start}
+  .undistributed-teachers-list{grid-template-columns:1fr}
+}
