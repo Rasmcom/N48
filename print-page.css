@@ -26,22 +26,22 @@
 .activity-print-band.bottom{background-image:url('background5.svg'),linear-gradient(90deg,#07a869,#0da9a6,#3d7eb9,#15445a)}
 .activity-print-content{min-height:0;overflow:hidden;padding:4mm 6mm}
 .activity-print-sheet{height:100%;width:100%;min-width:0;transform:none;border:0;padding:0;margin:0;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:#102f3a}
-.activity-print-header{margin:0 0 2.5mm;display:block;clear:both}
-.activity-print-brand-row{display:grid;grid-template-columns:24mm 1fr;gap:4mm;align-items:center;margin:0 auto 3.2mm;max-width:132mm;direction:rtl}
+.activity-print-header{margin:0 0 2mm;display:block;clear:both}
+.activity-print-brand-row{display:grid;grid-template-columns:24mm 1fr;gap:4mm;align-items:center;margin:0 auto 2.5mm;max-width:132mm;direction:rtl}
 .activity-print-logo{text-align:center;line-height:0;border-left:1.2px solid #b7bdc1;padding-left:4mm}
 .activity-print-logo img{width:20mm;max-height:13.5mm;object-fit:contain;display:inline-block}
 .activity-print-school-lines{text-align:right;color:#061640;font-weight:900;line-height:1.2}
 .activity-print-school-lines .edu-line{display:block;font-size:9.5px;margin-bottom:.8mm;white-space:nowrap}
 .activity-print-school-lines .school-line{display:block;font-size:11.2px;white-space:nowrap}
-.activity-print-title{color:#15445a;font-size:16px;font-weight:900;line-height:1.2;margin:0 0 2.4mm;text-align:center}
-.activity-print-meta{display:flex;justify-content:center;gap:8mm;color:#31535c;font-size:8.8px;font-weight:900;margin-bottom:2mm}
+.activity-print-title{color:#15445a;font-size:16px;font-weight:900;line-height:1.15;margin:0 0 1.8mm;text-align:center}
+.activity-print-meta{display:flex;justify-content:center;gap:8mm;color:#31535c;font-size:8.5px;font-weight:900;margin-bottom:1.5mm}
 .activity-print-table-wrap{min-height:0;flex:1;display:flex;align-items:flex-start}
 table.activity-print-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0}
-.activity-print-table th,.activity-print-table td{border:.5px solid #b9cdcf;text-align:center;vertical-align:middle;padding:3px 4px;font-size:8.2px;line-height:1.3}
-.activity-print-table th{background:#eaf5f5;color:#15445a;font-weight:900}
+.activity-print-table th,.activity-print-table td{border:.5px solid #b9cdcf;text-align:center;vertical-align:middle;padding:1.4px 3px;font-size:7.5px;line-height:1.16}
+.activity-print-table th{background:#eaf5f5;color:#15445a;font-weight:900;padding-top:2px;padding-bottom:2px}
 .activity-print-table td.serial{font-weight:900;width:7%}
-.activity-print-table td.teacher-name{font-size:8px;font-weight:900;text-align:right}
-.activity-print-table td.signature{min-height:18px}
+.activity-print-table td.teacher-name{font-size:7.4px;font-weight:900;text-align:right;line-height:1.18}
+.activity-print-table td.signature{min-height:14px}
 .activity-print-table.single col.serial-col{width:7%}
 .activity-print-table.single col.teacher-col{width:25%}
 .activity-print-table.single col.assignment-col{width:50%}
@@ -50,17 +50,18 @@ table.activity-print-table{width:100%;border-collapse:collapse;table-layout:fixe
 .activity-print-table.paired col.teacher-col{width:14.5%}
 .activity-print-table.paired col.assignment-col{width:25%}
 .activity-print-table.paired col.signature-col{width:7%}
-.activity-print-table.paired th,.activity-print-table.paired td{font-size:6.8px;padding:2.4px 2px;line-height:1.22}
-.activity-print-table.paired td.teacher-name{font-size:6.7px}
-.activity-print-table.dense th,.activity-print-table.dense td{font-size:7px;padding:2.3px 3px;line-height:1.2}
-.activity-assignment-lines{display:grid;gap:2px;text-align:right}
-.activity-assignment-line{display:block;padding:1px 0;border-bottom:.35px dashed #d6e3e5}
+.activity-print-table.paired th,.activity-print-table.paired td{font-size:6.2px;padding:1px 1.8px;line-height:1.12}
+.activity-print-table.paired td.teacher-name{font-size:6.1px}
+.activity-print-table.dense th,.activity-print-table.dense td{font-size:6.6px;padding:1px 2px;line-height:1.1}
+.activity-assignment-lines{display:grid;gap:0;text-align:right}
+.activity-assignment-line{display:block;padding:0;border-bottom:.3px dashed #d6e3e5}
 .activity-assignment-line:last-child{border-bottom:0}
-.activity-assignment-line b{display:block;color:#15445a;font-size:inherit;font-weight:900}
-.activity-assignment-line small{display:block;color:#537079;font-size:85%;font-weight:800;line-height:1.35}
-.activity-print-footer{margin-top:auto;padding-top:1.5mm;font-size:9px;font-weight:900;color:#234953;flex:0 0 auto}
-.activity-print-signatures{display:flex;justify-content:space-between;align-items:flex-end;direction:rtl;width:100%}
-.activity-print-signature{text-align:center;min-width:52mm}
+.activity-assignment-line b{display:block;color:#15445a;font-size:inherit;font-weight:900;line-height:1.12;margin-bottom:.2mm}
+.activity-subject-ranges{display:grid;gap:0}
+.activity-assignment-line small{display:block;color:#537079;font-size:84%;font-weight:800;line-height:1.18;padding:0}
+.activity-print-footer{margin-top:auto;padding-top:3mm;font-size:9px;font-weight:900;color:#234953;flex:0 0 auto}
+.activity-print-signatures{display:flex;justify-content:space-between;align-items:flex-end;direction:rtl;width:100%;padding:0 16mm;gap:38mm;box-sizing:border-box}
+.activity-print-signature{text-align:center;min-width:54mm;flex:0 0 54mm}
 .activity-print-signature b{display:block;color:#15445a;margin-bottom:4mm}
 .activity-print-signature span{display:block;min-height:12px}
 .activity-print-empty{padding:30mm 10mm;text-align:center;color:#668089;font-size:12px;font-weight:800}
