@@ -111,23 +111,28 @@ async function runScenario(name, contextOptions) {
   await page.locator('#teacherSelectionModal').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#teacherSelectionList [data-selection-index]').count(), 3, `${name}: automatic Excel rows`);
   await page.locator('[data-clear-all]').click();
-  await page.locator('#teacherSelectionCount').fill('2');
+  await page.locator('#teacherSelectionCount').fill('3');
   await page.locator('[data-select-count]').click();
   await page.locator('#confirmTeacherSelection').click();
 
   await page.waitForSelector('#importPreview tbody tr');
-  assert.equal(await page.locator('#importPreview tbody tr').count(), 2, `${name}: two selected teachers in preview`);
+  assert.equal(await page.locator('#importPreview tbody tr').count(), 3, `${name}: three selected teachers in preview`);
   assert.equal(await page.locator('#columnMappingModal').isVisible(), false, `${name}: mapping dialog not required`);
 
   await page.locator('#addManualPreviewBtn').click();
-  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 3);
+  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 4);
   await page.locator('#importPreview tbody tr').last().locator('[data-preview-delete]').click();
-  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 2);
+  await page.waitForFunction(() => document.querySelectorAll('#importPreview tbody tr').length === 3);
 
   await page.locator('#commitImportBtn').click();
   await page.waitForTimeout(100);
   assert.equal(await page.locator('[data-view-panel="classify"].active').count(), 1, `${name}: classify opens`);
-  assert.equal(await page.locator('.teacher-list-item').count(), 2, `${name}: two teachers imported`);
+  assert.equal(await page.locator('.teacher-list-item').count(), 3, `${name}: three teachers imported`);
+  await page.locator('[data-bulk-teacher]').nth(2).check();
+  page.once('dialog', dialog => dialog.accept());
+  await page.locator('[data-delete-selected-teachers]').click();
+  await page.waitForFunction(() => document.querySelectorAll('.teacher-list-item').length === 2);
+  assert.equal(await page.locator('.teacher-list-item').count(), 2, `${name}: bulk deletion removes selected teacher`);
 
   await assignTeacher(0, 'p4_1');
   await assignTeacher(1, 'p4_2');

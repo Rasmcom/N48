@@ -97,3 +97,33 @@
   .mobile-menu-button,
   .sidebar-toggle { min-width: 44px; min-height: 44px; }
 }
+
+
+/* Teacher bulk selection */
+.teacher-bulk-toolbar {
+  margin: 0 12px 10px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+.teacher-bulk-toolbar strong,
+.teacher-bulk-toolbar small { display: block; }
+.teacher-bulk-toolbar strong { color: var(--navy-950); font-size: 12px; }
+.teacher-bulk-toolbar small { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.teacher-bulk-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.teacher-bulk-actions button { flex: 1 1 auto; padding: 8px 10px; font-size: 10px; }
+.teacher-list-row { display: grid; grid-template-columns: 34px minmax(0,1fr); align-items: stretch; gap: 6px; margin: 0 8px 7px; border-radius: 14px; }
+.teacher-list-row.bulk-selected { background: var(--teal-100); box-shadow: inset -3px 0 0 var(--teal-600); }
+.teacher-list-row .teacher-list-item { width: 100%; margin: 0; }
+.teacher-bulk-check { display: grid; place-items: center; cursor: pointer; }
+.teacher-bulk-check input { position: absolute; opacity: 0; pointer-events: none; }
+.teacher-bulk-check span { width: 21px; height: 21px; border: 2px solid var(--border-strong); border-radius: 7px; background: #fff; position: relative; }
+.teacher-bulk-check input:checked + span { border-color: var(--teal-700); background: var(--teal-700); }
+.teacher-bulk-check input:checked + span::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 13px; font-weight: 900; }
+@media (max-width: 560px) {
+  .teacher-bulk-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .teacher-bulk-actions [data-delete-selected-teachers] { grid-column: 1 / -1; }
+}
