@@ -67,6 +67,29 @@
     await ensureExternalScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', () => Boolean(window.jspdf?.jsPDF));
   }
 
+  function genderTerms(state) {
+    const girls = state?.settings?.gender === 'girls';
+    return girls
+      ? {
+          teacher: 'المعلمة',
+          teacherName: 'اسم المعلمة',
+          teachers: 'المعلمات',
+          manager: 'مديرة المدرسة',
+          activityLeader: 'رائدة النشاط',
+          managerPlaceholder: 'اسم مديرة المدرسة',
+          leaderPlaceholder: 'اسم رائدة النشاط'
+        }
+      : {
+          teacher: 'المعلم',
+          teacherName: 'اسم المعلم',
+          teachers: 'المعلمين',
+          manager: 'مدير المدرسة',
+          activityLeader: 'رائد النشاط',
+          managerPlaceholder: 'اسم مدير المدرسة',
+          leaderPlaceholder: 'اسم رائد النشاط'
+        };
+  }
+
   function buildModal() {
     if ($('#activityPrintPreview')) return;
     const preview = document.createElement('section');
@@ -86,8 +109,8 @@
           <label>الإدارة التعليمية<input id="activityPrintDept" type="text" placeholder="الإدارة العامة للتعليم بمنطقة مكة المكرمة"></label>
           <label>اسم المدرسة<input id="activityPrintSchool" type="text" placeholder="اسم المدرسة"></label>
           <label>العام الدراسي<input id="activityPrintYear" type="text" placeholder="1448هـ"></label>
-          <label>مدير المدرسة<input id="activityPrintManager" type="text" placeholder="اسم مدير المدرسة"></label>
-          <label>وكيل المدرسة<input id="activityPrintVice" type="text" placeholder="اسم وكيل المدرسة"></label>
+          <label id="activityPrintManagerLabel">مدير المدرسة<input id="activityPrintManager" type="text" placeholder="اسم مدير المدرسة"></label>
+          <label id="activityPrintLeaderLabel">رائد النشاط<input id="activityPrintLeader" type="text" placeholder="اسم رائد النشاط"></label>
           <label>الفصل الدراسي<select id="activityPrintSemester"><option value="1">الفصل الدراسي الأول</option><option value="2">الفصل الدراسي الثاني</option></select></label>
           <button id="refreshActivityPrintPreview" class="activity-print-refresh" type="button">تحديث المعاينة</button>
         </div>
@@ -112,17 +135,22 @@
       school: clean($('#activityPrintSchool')?.value || ''),
       academicYear: clean($('#activityPrintYear')?.value || ''),
       manager: clean($('#activityPrintManager')?.value || ''),
-      vice: clean($('#activityPrintVice')?.value || '')
+      activityLeader: clean($('#activityPrintLeader')?.value || '')
     };
   }
 
   function hydratePrintSettings(state) {
     const stored = loadStoredPrintSettings();
+    const terms = genderTerms(state);
     $('#activityPrintDept').value = stored.dept || 'الإدارة التعليمية';
     $('#activityPrintSchool').value = stored.school || state?.settings?.schoolName || 'اسم المدرسة';
     $('#activityPrintYear').value = stored.academicYear || '';
     $('#activityPrintManager').value = stored.manager || '';
-    $('#activityPrintVice').value = stored.vice || '';
+    $('#activityPrintLeader').value = stored.activityLeader || stored.vice || '';
+    $('#activityPrintManagerLabel').childNodes[0].nodeValue = terms.manager;
+    $('#activityPrintLeaderLabel').childNodes[0].nodeValue = terms.activityLeader;
+    $('#activityPrintManager').placeholder = terms.managerPlaceholder;
+    $('#activityPrintLeader').placeholder = terms.leaderPlaceholder;
     currentSemester = Number(state?.distributionConfig?.activeSemester || 1);
     $('#activityPrintSemester').value = String(currentSemester);
   }
@@ -153,35 +181,53 @@
     });
 
     return [...grouped.values()]
-      .map((row) => ({ ...row, assignments: row.assignments.sort((a, b) => a.startWeek - b.startWeek || a.section.localeCompare(b.section, 'ar')) }))
+      .map((row) => ({ ...row, assignments: row.assignments.sort((a, b) => a.subject.localeCompare(b.subject, 'ar') || a.startWeek - b.startWeek || a.section.localeCompare(b.section, 'ar')) }))
       .sort((a, b) => a.teacherName.localeCompare(b.teacherName, 'ar'));
+  }
+
+  function groupAssignmentsBySubject(assignments) {
+    const subjects = new Map();
+    assignments.forEach((item) => {
+      const subject = clean(item.subject || 'حصة النشاط');
+      const group = subjects.get(subject) || { subject, ranges: [] };
+      const rangeKey = `${item.section}|${item.startWeek}|${item.endWeek}`;
+      if (!group.ranges.some((range) => range.key === rangeKey)) {
+        group.ranges.push({ key: rangeKey, section: item.section, startWeek: item.startWeek, endWeek: item.endWeek });
+      }
+      subjects.set(subject, group);
+    });
+    return [...subjects.values()].map((group) => ({
+      ...group,
+      ranges: group.ranges.sort((a, b) => a.startWeek - b.startWeek || a.section.localeCompare(b.section, 'ar'))
+    }));
   }
 
   function assignmentCell(row) {
     if (!row) return '&nbsp;';
-    return `<div class="activity-assignment-lines">${row.assignments.map((item) => `
+    const groups = groupAssignmentsBySubject(row.assignments);
+    return `<div class="activity-assignment-lines">${groups.map((group) => `
       <span class="activity-assignment-line">
-        <b>${esc(item.subject)}</b>
-        <small>${esc(item.section)} · الأسابيع من ${ar(item.startWeek)} إلى ${ar(item.endWeek)}</small>
+        <b>${esc(group.subject)}</b>
+        <span class="activity-subject-ranges">${group.ranges.map((range) => `<small>${esc(range.section)} · من الأسبوع ${ar(range.startWeek)} إلى ${ar(range.endWeek)}</small>`).join('')}</span>
       </span>`).join('')}</div>`;
   }
 
-  function singleTable(rows) {
+  function singleTable(rows, terms) {
     const dense = rows.length > 28 ? ' dense' : '';
     return `<table class="activity-print-table single${dense}">
       <colgroup><col class="serial-col"><col class="teacher-col"><col class="assignment-col"><col class="signature-col"></colgroup>
-      <thead><tr><th>م</th><th>اسم المعلم</th><th>حصة النشاط المسندة</th><th>التوقيع</th></tr></thead>
+      <thead><tr><th>م</th><th>${terms.teacherName}</th><th>حصة النشاط المسندة</th><th>التوقيع</th></tr></thead>
       <tbody>${rows.map((row, index) => `<tr><td class="serial">${ar(index + 1)}</td><td class="teacher-name">${esc(row.teacherName)}</td><td>${assignmentCell(row)}</td><td class="signature">&nbsp;</td></tr>`).join('')}</tbody>
     </table>`;
   }
 
-  function pairedTable(rows) {
+  function pairedTable(rows, terms) {
     const split = Math.ceil(rows.length / 2);
     const first = rows.slice(0, split);
     const second = rows.slice(split);
     return `<table class="activity-print-table paired">
       <colgroup><col class="serial-col"><col class="teacher-col"><col class="assignment-col"><col class="signature-col"><col class="serial-col"><col class="teacher-col"><col class="assignment-col"><col class="signature-col"></colgroup>
-      <thead><tr><th>م</th><th>اسم المعلم</th><th>حصة النشاط</th><th>التوقيع</th><th>م</th><th>اسم المعلم</th><th>حصة النشاط</th><th>التوقيع</th></tr></thead>
+      <thead><tr><th>م</th><th>${terms.teacherName}</th><th>حصة النشاط</th><th>التوقيع</th><th>م</th><th>${terms.teacherName}</th><th>حصة النشاط</th><th>التوقيع</th></tr></thead>
       <tbody>${first.map((left, index) => {
         const right = second[index];
         return `<tr>
@@ -192,12 +238,6 @@
     </table>`;
   }
 
-  function genderTerms(state) {
-    return state?.settings?.gender === 'girls'
-      ? { manager: 'مديرة المدرسة', vice: 'وكيلة المدرسة' }
-      : { manager: 'مدير المدرسة', vice: 'وكيل المدرسة' };
-  }
-
   function renderPrintPage() {
     if (!currentState) return;
     const settings = printSettingsFromForm();
@@ -205,21 +245,21 @@
     const rows = teacherRows(currentState, currentSemester);
     const semesterLabel = currentSemester === 1 ? 'الفصل الدراسي الأول' : 'الفصل الدراسي الثاني';
     const terms = genderTerms(currentState);
-    const table = rows.length >= LARGE_LIST_THRESHOLD ? pairedTable(rows) : singleTable(rows);
+    const table = rows.length >= LARGE_LIST_THRESHOLD ? pairedTable(rows, terms) : singleTable(rows, terms);
     const host = $('#activityPrintPageHost');
     host.innerHTML = `<div id="activityPrintPage" class="activity-print-page portrait">
       <div class="activity-print-band top"></div>
       <div class="activity-print-content"><div class="activity-print-sheet">
         <div class="activity-print-header">
           <div class="activity-print-brand-row">
-            <div class="activity-print-logo"><img src="logomoe.svg" alt="شعار وزارة التعليم"></div>
+            <div class="activity-print-logo"><img src="https://raw.githubusercontent.com/Rasmcom/N48/main/logomoe.png" alt="شعار وزارة التعليم"></div>
             <div class="activity-print-school-lines"><span class="edu-line">${esc(settings.dept || 'الإدارة التعليمية')}</span><span class="school-line">${esc(settings.school || currentState?.settings?.schoolName || 'اسم المدرسة')}</span></div>
           </div>
-          <div class="activity-print-title">كشف تكليف المعلمين بحصة النشاط</div>
+          <div class="activity-print-title">كشف تكليف ${terms.teachers} بحصة النشاط</div>
           <div class="activity-print-meta"><span>العام الدراسي: ${esc(settings.academicYear || '—')}</span><span>الفصل الدراسي: ${esc(semesterLabel)}</span></div>
         </div>
         <div class="activity-print-table-wrap">${rows.length ? table : '<div class="activity-print-empty">لا توجد تكليفات نشاط في الفصل الدراسي المحدد.</div>'}</div>
-        <div class="activity-print-footer"><div class="activity-print-signatures"><div class="activity-print-signature"><b>${terms.vice}</b><span>${esc(settings.vice || '')}</span></div><div class="activity-print-signature"><b>${terms.manager}</b><span>${esc(settings.manager || '')}</span></div></div></div>
+        <div class="activity-print-footer"><div class="activity-print-signatures"><div class="activity-print-signature activity-leader-signature"><b>${terms.activityLeader}</b><span>${esc(settings.activityLeader || '')}</span></div><div class="activity-print-signature manager-signature"><b>${terms.manager}</b><span>${esc(settings.manager || '')}</span></div></div></div>
       </div></div>
       <div class="activity-print-band bottom"></div>
     </div>`;
