@@ -27,8 +27,10 @@ jobs:
           node --check ui-hotfix.js
           node --check import-selection.js
           node --check print-page.js
+          node --check distribution-report.js
           node --check tests/ui-smoke.mjs
           node --check tests/print-gender-smoke.mjs
+          node --check tests/distribution-report-smoke.mjs
 
       - name: Install Playwright
         run: |
@@ -53,6 +55,7 @@ jobs:
         run: |
           node tests/ui-smoke.mjs > smoke-output.txt 2>&1
           node tests/print-gender-smoke.mjs >> smoke-output.txt 2>&1
+          node tests/distribution-report-smoke.mjs >> smoke-output.txt 2>&1
 
       - name: Print smoke diagnostics
         if: ${{ always() }}
