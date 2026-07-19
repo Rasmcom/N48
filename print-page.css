@@ -37,11 +37,11 @@
 .activity-print-meta{display:flex;justify-content:center;gap:8mm;color:#31535c;font-size:8.5px;font-weight:900;margin-bottom:1.5mm}
 .activity-print-table-wrap{min-height:0;flex:1;display:flex;align-items:flex-start}
 table.activity-print-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0}
-.activity-print-table th,.activity-print-table td{border:.5px solid #b9cdcf;text-align:center;vertical-align:middle;padding:1.4px 3px;font-size:7.5px;line-height:1.16}
-.activity-print-table th{background:#eaf5f5;color:#15445a;font-weight:900;padding-top:2px;padding-bottom:2px}
+.activity-print-table th,.activity-print-table td{border:.5px solid #b9cdcf;text-align:center;vertical-align:middle;padding:2.4px 3.4px;font-size:8px;line-height:1.24}
+.activity-print-table th{background:#eaf5f5;color:#15445a;font-weight:900;padding-top:2.8px;padding-bottom:2.8px}
 .activity-print-table td.serial{font-weight:900;width:7%}
-.activity-print-table td.teacher-name{font-size:7.4px;font-weight:900;text-align:right;line-height:1.18}
-.activity-print-table td.signature{min-height:14px}
+.activity-print-table td.teacher-name{font-size:7.8px;font-weight:900;text-align:right;line-height:1.25}
+.activity-print-table td.signature{min-height:17px}
 .activity-print-table.single col.serial-col{width:7%}
 .activity-print-table.single col.teacher-col{width:25%}
 .activity-print-table.single col.assignment-col{width:50%}
@@ -50,15 +50,15 @@ table.activity-print-table{width:100%;border-collapse:collapse;table-layout:fixe
 .activity-print-table.paired col.teacher-col{width:14.5%}
 .activity-print-table.paired col.assignment-col{width:25%}
 .activity-print-table.paired col.signature-col{width:7%}
-.activity-print-table.paired th,.activity-print-table.paired td{font-size:6.2px;padding:1px 1.8px;line-height:1.12}
+.activity-print-table.paired th,.activity-print-table.paired td{font-size:6.2px;padding:1.1px 1.8px;line-height:1.13}
 .activity-print-table.paired td.teacher-name{font-size:6.1px}
-.activity-print-table.dense th,.activity-print-table.dense td{font-size:6.6px;padding:1px 2px;line-height:1.1}
+.activity-print-table.dense th,.activity-print-table.dense td{font-size:6.6px;padding:1.1px 2px;line-height:1.12}
 .activity-assignment-lines{display:grid;gap:0;text-align:right}
-.activity-assignment-line{display:block;padding:0;border-bottom:.3px dashed #d6e3e5}
+.activity-assignment-line{display:block;padding:.35mm 0;border-bottom:.3px dashed #d6e3e5}
 .activity-assignment-line:last-child{border-bottom:0}
-.activity-assignment-line b{display:block;color:#15445a;font-size:inherit;font-weight:900;line-height:1.12;margin-bottom:.2mm}
-.activity-subject-ranges{display:grid;gap:0}
-.activity-assignment-line small{display:block;color:#537079;font-size:84%;font-weight:800;line-height:1.18;padding:0}
+.activity-assignment-line b{display:block;color:#15445a;font-size:inherit;font-weight:900;line-height:1.2;margin-bottom:.35mm}
+.activity-subject-ranges{display:grid;gap:.15mm}
+.activity-assignment-line small{display:block;color:#537079;font-size:86%;font-weight:800;line-height:1.28;padding:.1mm 0}
 .activity-print-footer{margin-top:auto;padding-top:3mm;font-size:9px;font-weight:900;color:#234953;flex:0 0 auto}
 .activity-print-signatures{display:flex;justify-content:space-between;align-items:flex-end;direction:rtl;width:100%;padding:0 16mm;gap:38mm;box-sizing:border-box}
 .activity-print-signature{text-align:center;min-width:54mm;flex:0 0 54mm}
