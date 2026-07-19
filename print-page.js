@@ -212,7 +212,7 @@
       <div class="activity-print-content"><div class="activity-print-sheet">
         <div class="activity-print-header">
           <div class="activity-print-brand-row">
-            <div class="activity-print-logo"><img src="logomoe.png" alt="شعار وزارة التعليم" onerror="this.onerror=null;this.src='logomoe.svg'"></div>
+            <div class="activity-print-logo"><img src="logomoe.svg" alt="شعار وزارة التعليم"></div>
             <div class="activity-print-school-lines"><span class="edu-line">${esc(settings.dept || 'الإدارة التعليمية')}</span><span class="school-line">${esc(settings.school || currentState?.settings?.schoolName || 'اسم المدرسة')}</span></div>
           </div>
           <div class="activity-print-title">كشف تكليف المعلمين بحصة النشاط</div>
