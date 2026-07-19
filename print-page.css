@@ -1,0 +1,66 @@
+/* صفحة طباعة تكليفات حصة النشاط — بنفس بنية صفحة المناوبة المرجعية */
+.activity-print-preview{display:none;position:fixed;inset:0;z-index:9999;padding:24px;background:rgba(7,38,48,.48);backdrop-filter:blur(6px);overflow:auto;direction:rtl}
+.activity-print-preview.show{display:block}
+.activity-print-preview.pdf-capture{display:block!important;position:fixed!important;top:0!important;left:0!important;padding:0!important;margin:0!important;background:#fff!important;overflow:hidden!important;pointer-events:none!important;z-index:-1!important;backdrop-filter:none!important}
+.activity-print-preview.pdf-capture .activity-print-preview-card{margin:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
+.activity-print-preview.pdf-capture .activity-print-preview-head,.activity-print-preview.pdf-capture .activity-print-settings{display:none!important}
+.activity-print-preview.pdf-capture .activity-print-preview-body{padding:0!important}
+.activity-print-preview-card{width:min(1180px,100%);margin:auto;border-radius:28px;background:#fff;overflow:hidden;box-shadow:0 35px 100px rgba(0,0,0,.24)}
+.activity-print-preview-head{padding:18px 22px;background:linear-gradient(135deg,#15445a,#0da9a6);color:#fff;display:flex;justify-content:space-between;gap:14px;align-items:center}
+.activity-print-preview-head h2{margin:0;font-size:18px;font-weight:900}
+.activity-print-preview-actions{display:flex;gap:9px;flex-wrap:wrap}
+.activity-print-preview-actions button{min-height:40px;padding:0 14px;border-radius:13px;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.activity-print-download{border:0;color:#15445a;background:#fff}
+.activity-print-close{border:1px solid rgba(255,255,255,.4);color:#fff;background:rgba(255,255,255,.12)}
+.activity-print-settings{padding:16px 22px;border-bottom:1px solid #dcebec;background:#f8fbfb;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:end}
+.activity-print-settings label{display:grid;gap:5px;color:#234953;font-size:10px;font-weight:900}
+.activity-print-settings input,.activity-print-settings select{width:100%;min-height:40px;border:1px solid #cfe2e5;border-radius:12px;background:#fff;padding:7px 10px;font-family:inherit;font-size:11px;color:#193b45;outline:none}
+.activity-print-settings input:focus,.activity-print-settings select:focus{border-color:#91d8d7;box-shadow:0 0 0 3px rgba(13,169,166,.10)}
+.activity-print-refresh{min-height:40px;border:0;border-radius:12px;color:#fff;background:linear-gradient(135deg,#0da9a6,#07a869);font-family:inherit;font-size:11px;font-weight:900;cursor:pointer}
+.activity-print-preview-body{padding:24px;overflow:auto;background:#eef4f5}
+.activity-print-page{margin:auto;background:#fff;display:grid;overflow:hidden;width:210mm;height:297mm;grid-template-rows:9mm 1fr 12.5mm;box-shadow:0 18px 55px rgba(21,68,90,.16)}
+.activity-print-band{width:100%;height:100%;background-size:cover;background-position:center}
+.activity-print-band.top{background-image:url('background4.jpg'),url('background4.svg'),linear-gradient(90deg,#15445a,#3d7eb9,#0da9a6,#07a869)}
+.activity-print-band.bottom{background-image:url('background5.jpg'),url('background5.svg'),linear-gradient(90deg,#07a869,#0da9a6,#3d7eb9,#15445a)}
+.activity-print-content{min-height:0;overflow:hidden;padding:4mm 6mm}
+.activity-print-sheet{height:100%;width:100%;min-width:0;transform:none;border:0;padding:0;margin:0;display:flex;flex-direction:column;-webkit-print-color-adjust:exact;print-color-adjust:exact;color:#102f3a}
+.activity-print-header{margin:0 0 2.5mm;display:block;clear:both}
+.activity-print-brand-row{display:grid;grid-template-columns:24mm 1fr;gap:4mm;align-items:center;margin:0 auto 3.2mm;max-width:132mm;direction:rtl}
+.activity-print-logo{text-align:center;line-height:0;border-left:1.2px solid #b7bdc1;padding-left:4mm}
+.activity-print-logo img{width:20mm;max-height:13.5mm;object-fit:contain;display:inline-block}
+.activity-print-school-lines{text-align:right;color:#061640;font-weight:900;line-height:1.2}
+.activity-print-school-lines .edu-line{display:block;font-size:9.5px;margin-bottom:.8mm;white-space:nowrap}
+.activity-print-school-lines .school-line{display:block;font-size:11.2px;white-space:nowrap}
+.activity-print-title{color:#15445a;font-size:16px;font-weight:900;line-height:1.2;margin:0 0 2.4mm;text-align:center}
+.activity-print-meta{display:flex;justify-content:center;gap:8mm;color:#31535c;font-size:8.8px;font-weight:900;margin-bottom:2mm}
+.activity-print-table-wrap{min-height:0;flex:1;display:flex;align-items:flex-start}
+table.activity-print-table{width:100%;border-collapse:collapse;table-layout:fixed;margin:0}
+.activity-print-table th,.activity-print-table td{border:.5px solid #b9cdcf;text-align:center;vertical-align:middle;padding:3px 4px;font-size:8.2px;line-height:1.3}
+.activity-print-table th{background:#eaf5f5;color:#15445a;font-weight:900}
+.activity-print-table td.serial{font-weight:900;width:7%}
+.activity-print-table td.teacher-name{font-size:8px;font-weight:900;text-align:right}
+.activity-print-table td.signature{min-height:18px}
+.activity-print-table.single col.serial-col{width:7%}
+.activity-print-table.single col.teacher-col{width:25%}
+.activity-print-table.single col.assignment-col{width:50%}
+.activity-print-table.single col.signature-col{width:18%}
+.activity-print-table.paired col.serial-col{width:3.5%}
+.activity-print-table.paired col.teacher-col{width:14.5%}
+.activity-print-table.paired col.assignment-col{width:25%}
+.activity-print-table.paired col.signature-col{width:7%}
+.activity-print-table.paired th,.activity-print-table.paired td{font-size:6.8px;padding:2.4px 2px;line-height:1.22}
+.activity-print-table.paired td.teacher-name{font-size:6.7px}
+.activity-print-table.dense th,.activity-print-table.dense td{font-size:7px;padding:2.3px 3px;line-height:1.2}
+.activity-assignment-lines{display:grid;gap:2px;text-align:right}
+.activity-assignment-line{display:block;padding:1px 0;border-bottom:.35px dashed #d6e3e5}
+.activity-assignment-line:last-child{border-bottom:0}
+.activity-assignment-line b{display:block;color:#15445a;font-size:inherit;font-weight:900}
+.activity-assignment-line small{display:block;color:#537079;font-size:85%;font-weight:800;line-height:1.35}
+.activity-print-footer{margin-top:auto;padding-top:1.5mm;font-size:9px;font-weight:900;color:#234953;flex:0 0 auto}
+.activity-print-signatures{display:flex;justify-content:space-between;align-items:flex-end;direction:rtl;width:100%}
+.activity-print-signature{text-align:center;min-width:52mm}
+.activity-print-signature b{display:block;color:#15445a;margin-bottom:4mm}
+.activity-print-signature span{display:block;min-height:12px}
+.activity-print-empty{padding:30mm 10mm;text-align:center;color:#668089;font-size:12px;font-weight:800}
+@media(max-width:900px){.activity-print-preview{padding:10px}.activity-print-preview-head{align-items:flex-start}.activity-print-settings{grid-template-columns:1fr 1fr}.activity-print-preview-body{padding:10px}.activity-print-page{transform-origin:top center}}
+@media(max-width:560px){.activity-print-preview-head{display:grid}.activity-print-preview-actions{width:100%}.activity-print-preview-actions button{flex:1}.activity-print-settings{grid-template-columns:1fr}.activity-print-page{transform:scale(.47);margin-bottom:-157mm}.activity-print-preview-body{overflow:hidden}}
