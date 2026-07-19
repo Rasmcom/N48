@@ -28,6 +28,7 @@ jobs:
           node --check import-selection.js
           node --check print-page.js
           node --check tests/ui-smoke.mjs
+          node --check tests/print-gender-smoke.mjs
 
       - name: Install Playwright
         run: |
@@ -49,7 +50,9 @@ jobs:
       - name: Run UI smoke tests
         id: smoke
         continue-on-error: true
-        run: node tests/ui-smoke.mjs > smoke-output.txt 2>&1
+        run: |
+          node tests/ui-smoke.mjs > smoke-output.txt 2>&1
+          node tests/print-gender-smoke.mjs >> smoke-output.txt 2>&1
 
       - name: Print smoke diagnostics
         if: ${{ always() }}
