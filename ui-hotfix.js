@@ -1,11 +1,27 @@
 (() => {
   'use strict';
 
+  const PRODUCT_TITLE = 'موزّع حصة النشاط';
+
   /* تحسينات تفاعل عامة فقط. منطق التوزيع موجود بالكامل داخل app3.js. */
   function normalizeButtons(root = document) {
     root
       .querySelectorAll?.('button:not([type])')
       .forEach((button) => button.setAttribute('type', 'button'));
+  }
+
+  function enforceProductTitle() {
+    document.title = PRODUCT_TITLE;
+
+    const pageTitle = document.querySelector('#pageTitle');
+    if (pageTitle && pageTitle.textContent !== PRODUCT_TITLE) {
+      pageTitle.textContent = PRODUCT_TITLE;
+    }
+
+    const brandTitle = document.querySelector('.brand-block strong');
+    if (brandTitle && brandTitle.textContent !== PRODUCT_TITLE) {
+      brandTitle.textContent = PRODUCT_TITLE;
+    }
   }
 
   function syncOriginalPrintAssets(root = document) {
@@ -50,18 +66,43 @@
     normalizeButtons();
     loadModules();
     syncOriginalPrintAssets();
+    enforceProductTitle();
 
     const observer = new MutationObserver((mutations) => {
+      let titleMayHaveChanged = false;
+
       for (const mutation of mutations) {
+        if (mutation.type === 'characterData') titleMayHaveChanged = true;
+
         for (const node of mutation.addedNodes) {
           if (!(node instanceof Element)) continue;
           if (node.matches('button:not([type])')) node.setAttribute('type', 'button');
           normalizeButtons(node);
           syncOriginalPrintAssets(node);
+
+          if (
+            node.matches('#pageTitle, .brand-block, .brand-block strong') ||
+            node.querySelector?.('#pageTitle, .brand-block strong')
+          ) {
+            titleMayHaveChanged = true;
+          }
+        }
+
+        if (
+          mutation.target instanceof Element &&
+          mutation.target.matches('#pageTitle, .brand-block strong')
+        ) {
+          titleMayHaveChanged = true;
         }
       }
+
+      if (titleMayHaveChanged) enforceProductTitle();
     });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
   });
 })();
