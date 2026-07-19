@@ -33,6 +33,18 @@
   pointer-events: none;
 }
 
+/* ثبات اسم المنتج في الهيدر والقائمة الجانبية */
+#pageTitle,
+.brand-block strong {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+#pageTitle {
+  display: block !important;
+  min-height: 1.25em;
+}
+
 .sidebar { z-index: 100 !important; }
 .sidebar-backdrop { z-index: 90 !important; }
 .sidebar-toggle { z-index: 120 !important; }
@@ -96,6 +108,12 @@
   .nav-icon { min-width: 32px; min-height: 32px; }
   .mobile-menu-button,
   .sidebar-toggle { min-width: 44px; min-height: 44px; }
+
+  #pageTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* Teacher bulk selection — verified with balanced semester scheduling */
