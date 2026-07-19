@@ -2,414 +2,106 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#071f3f" />
+  <meta name="description" content="موزع حصة النشاط وفق نسبة 10% مع حفظ محلي داخل المتصفح" />
   <title>موزّع حصة النشاط</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="phase2.css" />
+  <link rel="stylesheet" href="phase3.css" />
+  <link rel="stylesheet" href="ui-hotfix.css" />
+  <link rel="stylesheet" href="import-selection.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script defer src="app.js"></script>
+  <script defer src="import-selection.js"></script>
+  <script defer src="app3.js"></script>
+  <script defer src="ui-hotfix.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" aria-label="التنقل الرئيسي">
-      <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="طي القائمة الجانبية" aria-expanded="true" title="طي القائمة الجانبية">
-        <span class="sidebar-toggle-icon" aria-hidden="true">›</span>
-      </button>
-      <div class="brand-block">
-        <div class="brand-mark" aria-hidden="true">
-          <span></span><span></span><span></span><span></span>
-        </div>
-        <div>
-          <strong>موزّع حصة النشاط</strong>
-          <small>تطبيق نسبة ١٠٪</small>
-        </div>
-      </div>
-
+      <button id="sidebarToggle" class="sidebar-toggle" type="button" aria-label="طي القائمة الجانبية" aria-expanded="true" title="طي القائمة الجانبية"><span class="sidebar-toggle-icon" aria-hidden="true">›</span></button>
+      <div class="brand-block"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><strong>موزّع حصة النشاط</strong><small>تطبيق نسبة ١٠٪</small></div></div>
       <nav id="sideNav" class="side-nav">
-        <button class="nav-item active" data-view="dashboard" title="الرئيسية">
-          <span class="nav-icon">⌂</span>
-          <span>الرئيسية</span>
-          <span class="nav-state" data-step-state="dashboard">●</span>
-        </button>
-        <button class="nav-item" data-view="settings" title="إعداد المدرسة">
-          <span class="nav-icon">⚙</span>
-          <span>إعداد المدرسة</span>
-          <span class="nav-state" data-step-state="settings">○</span>
-        </button>
-        <button class="nav-item" data-view="import" title="استيراد المعلمين">
-          <span class="nav-icon">⇩</span>
-          <span>استيراد المعلمين</span>
-          <span class="nav-state" data-step-state="import">○</span>
-        </button>
-        <button class="nav-item" data-view="classify" title="تصنيف المعلمين">
-          <span class="nav-icon">◫</span>
-          <span>تصنيف المعلمين</span>
-          <span class="nav-state" data-step-state="classify">○</span>
-        </button>
-        <button class="nav-item" data-view="validate" title="التحقق">
-          <span class="nav-icon">✓</span>
-          <span>التحقق</span>
-          <span class="nav-state" data-step-state="validate">○</span>
-        </button>
-        <button class="nav-item" data-view="distribution" title="توزيع النشاط">
-          <span class="nav-icon activity-dot">●</span>
-          <span>توزيع النشاط</span>
-          <span class="nav-state" data-step-state="distribution">○</span>
-        </button>
+        <button class="nav-item active" data-view="dashboard" title="الرئيسية"><span class="nav-icon">⌂</span><span>الرئيسية</span><span class="nav-state" data-step-state="dashboard">●</span></button>
+        <button class="nav-item" data-view="settings" title="إعداد المدرسة"><span class="nav-icon">⚙</span><span>إعداد المدرسة</span><span class="nav-state" data-step-state="settings">○</span></button>
+        <button class="nav-item" data-view="import" title="استيراد المعلمين"><span class="nav-icon">⇩</span><span>استيراد المعلمين</span><span class="nav-state" data-step-state="import">○</span></button>
+        <button class="nav-item" data-view="classify" title="إسناد المواد والفصول"><span class="nav-icon">◫</span><span>إسناد المواد والفصول</span><span class="nav-state" data-step-state="classify">○</span></button>
+        <button class="nav-item" data-view="validate" title="التحقق"><span class="nav-icon">✓</span><span>التحقق</span><span class="nav-state" data-step-state="validate">○</span></button>
+        <button class="nav-item" data-view="distribution" title="توزيع النشاط"><span class="nav-icon activity-dot">●</span><span>توزيع النشاط</span><span class="nav-state" data-step-state="distribution">○</span></button>
       </nav>
-
       <div class="sidebar-footer">
-        <div class="local-badge">
-          <span class="pulse-dot"></span>
-          <div>
-            <strong>حفظ محلي</strong>
-            <small id="saveStatus">جاهز للحفظ</small>
-          </div>
-        </div>
+        <div class="local-badge"><span class="pulse-dot"></span><div><strong>حفظ محلي</strong><small id="saveStatus">جاهز للحفظ</small></div></div>
         <button id="backupBtn" class="ghost-button full-width">نسخة احتياطية</button>
-        <label class="ghost-button full-width file-label">
-          استعادة نسخة
-          <input id="restoreInput" type="file" accept="application/json,.json" hidden />
-        </label>
+        <label class="ghost-button full-width file-label">استعادة نسخة<input id="restoreInput" type="file" accept="application/json,.json" hidden /></label>
       </div>
     </aside>
     <button id="sidebarBackdrop" class="sidebar-backdrop" type="button" aria-label="إغلاق القائمة"></button>
 
     <main class="main-area">
       <header class="topbar">
-        <button id="mobileMenuBtn" class="mobile-menu-button" type="button" aria-label="فتح القائمة الجانبية" aria-expanded="false">
-          <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
-        </button>
-        <div class="topbar-title">
-          <p class="eyebrow">نظام محلي لإدارة وتوزيع حصة النشاط</p>
-          <h1 id="pageTitle">مركز القيادة</h1>
-        </div>
-        <div class="topbar-actions">
-          <div class="school-chip">
-            <span class="school-chip-icon">◈</span>
-            <div>
-              <strong id="schoolNameTop">مدرسة جديدة</strong>
-              <small id="schoolMetaTop">لم تكتمل الإعدادات</small>
-            </div>
-          </div>
-          <button id="quickContinueBtn" class="primary-button">متابعة الإعداد</button>
-        </div>
+        <button id="mobileMenuBtn" class="mobile-menu-button" type="button" aria-label="فتح القائمة الجانبية" aria-expanded="false"><span></span><span></span><span></span></button>
+        <div class="topbar-title"><p class="eyebrow">نظام محلي لإدارة وتوزيع حصة النشاط</p><h1 id="pageTitle">مركز القيادة</h1></div>
+        <div class="topbar-actions"><div class="school-chip"><span class="school-chip-icon">◈</span><div><strong id="schoolNameTop">مدرسة جديدة</strong><small id="schoolMetaTop">لم تكتمل الإعدادات</small></div></div><button id="quickContinueBtn" class="primary-button">متابعة الإعداد</button></div>
       </header>
-
       <section id="toast" class="toast" role="status" aria-live="polite"></section>
 
       <div id="viewRoot" class="view-root">
-        <!-- Dashboard -->
         <section class="view active" data-view-panel="dashboard">
           <div class="hero-panel">
-            <div class="hero-copy">
-              <span class="hero-kicker">خطوة بخطوة</span>
-              <h2>حوّل بيانات المدرسة إلى توزيع نشاط قابل للمراجعة والاعتماد</h2>
-              <p>ابدأ بإعداد المدرسة، ثم استورد المعلمين وصنّف إسناداتهم، وبعد التحقق سيقترح النظام توزيعًا أسبوعيًا دون تجاوز نسبة ١٠٪ من أي مادة.</p>
-              <div class="hero-actions">
-                <button class="primary-button" data-go="settings">ابدأ إعداد المدرسة</button>
-                <button class="secondary-button" data-go="import">استيراد المعلمين</button>
-              </div>
-            </div>
-            <div class="hero-orbit" aria-hidden="true">
-              <div class="orbit-ring orbit-1"></div>
-              <div class="orbit-ring orbit-2"></div>
-              <div class="orbit-center">١٠٪</div>
-              <span class="orbit-node node-a">٣٥</span>
-              <span class="orbit-node node-b">٢٤</span>
-              <span class="orbit-node node-c activity">١</span>
-            </div>
+            <div class="hero-copy"><span class="hero-kicker">من بيانات المدرسة إلى توزيع عادل</span><h2>اختر المعلمين وإسناداتهم، ودَع النظام يحدد المادة المختصر منها لكل فصل</h2><p>تُقرأ حصص المادة تلقائيًا من الخطة الدراسية، ثم يقارن النظام جميع المعلمين والتخصصات قبل إنشاء توزيع حصة النشاط دون تجاوز نسبة ١٠٪.</p><div class="hero-actions"><button class="primary-button" data-go="settings">ابدأ إعداد المدرسة</button><button class="secondary-button" data-go="import">استيراد المعلمين</button></div></div>
+            <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring orbit-1"></div><div class="orbit-ring orbit-2"></div><div class="orbit-center">١٠٪</div><span class="orbit-node node-a">٣٥</span><span class="orbit-node node-b">٢٤</span><span class="orbit-node node-c activity">١</span></div>
           </div>
-
           <div class="stats-grid">
-            <article class="stat-card">
-              <span class="stat-label">المعلمون</span>
-              <strong id="statTeachers">٠</strong>
-              <small>تم استيرادهم</small>
-            </article>
-            <article class="stat-card">
-              <span class="stat-label">مكتملو الإسناد</span>
-              <strong id="statComplete">٠</strong>
-              <small>بياناتهم جاهزة</small>
-            </article>
-            <article class="stat-card activity-card">
-              <span class="stat-label">المؤهلون للنشاط</span>
-              <strong id="statEligible">٠</strong>
-              <small>نصاب ٢٤ حصة</small>
-            </article>
-            <article class="stat-card">
-              <span class="stat-label">تحتاج مراجعة</span>
-              <strong id="statReview">٠</strong>
-              <small>قبل التوزيع</small>
-            </article>
+            <article class="stat-card"><span class="stat-label">المعلمون</span><strong id="statTeachers">٠</strong><small>تم استيرادهم</small></article>
+            <article class="stat-card"><span class="stat-label">مكتملو الإسناد</span><strong id="statComplete">٠</strong><small>النصاب مطابق</small></article>
+            <article class="stat-card activity-card"><span class="stat-label">الفصول المحتاجة للنشاط</span><strong id="statEligible">٠</strong><small>لا تتضمن نشاطًا ثابتًا</small></article>
+            <article class="stat-card"><span class="stat-label">تحتاج مراجعة</span><strong id="statReview">٠</strong><small>قبل التوزيع</small></article>
           </div>
-
           <div class="dashboard-grid">
-            <article class="panel progress-panel">
-              <div class="panel-heading">
-                <div>
-                  <span class="section-kicker">مسار العمل</span>
-                  <h3>تقدم المشروع</h3>
-                </div>
-                <span id="progressPercent" class="progress-badge">٠٪</span>
-              </div>
-              <div class="progress-track"><span id="progressBar"></span></div>
-              <div id="workflowSteps" class="workflow-steps"></div>
-            </article>
-
-            <article class="panel rule-panel">
-              <div class="panel-heading">
-                <div>
-                  <span class="section-kicker">القاعدة التشغيلية</span>
-                  <h3>كيف يعمل التوزيع؟</h3>
-                </div>
-              </div>
-              <div class="rule-formula">
-                <span>٢٤ حصة مواد</span>
-                <b>←</b>
-                <span class="activity-pill">١ نشاط</span>
-                <b>+</b>
-                <span>٢٣ مادة</span>
-              </div>
-              <p>تبقى حصة النشاط داخل نصاب المعلم، ويحدد النظام المادة والفصل والشعبة التي تحل الحصة محلها كل أسبوع.</p>
-              <div class="rule-note">الحد الأعلى من أي مادة = الجزء الصحيح من (الحصص السنوية × ١٠٪)</div>
-            </article>
+            <article class="panel progress-panel"><div class="panel-heading"><div><span class="section-kicker">مسار العمل</span><h3>تقدم المشروع</h3></div><span id="progressPercent" class="progress-badge">٠٪</span></div><div class="progress-track"><span id="progressBar"></span></div><div id="workflowSteps" class="workflow-steps"></div></article>
+            <article class="panel rule-panel"><div class="panel-heading"><div><span class="section-kicker">منطق التحويل</span><h3>كيف تُضاف حصة النشاط؟</h3></div></div><div class="rule-formula"><span>٦ رياضيات</span><b>←</b><span class="activity-pill">١ نشاط</span><b>+</b><span>٥ رياضيات</span></div><p>لا تُضاف حصة إلى نصاب المعلم، بل تتحول حصة من المادة إلى نشاط في الأسبوع المختار، ويظل مجموع نصابه ثابتًا.</p><div class="rule-note">يظهر في النتيجة: المادة المختصر منها، العدد قبل التحويل، العدد بعده، والفرق -١ / +١.</div></article>
           </div>
         </section>
 
-        <!-- Settings -->
         <section class="view" data-view-panel="settings">
           <div class="page-grid settings-layout">
             <div class="wizard-rail">
               <button class="wizard-step active" data-settings-step="1"><span>١</span><div><strong>هوية المدرسة</strong><small>الاسم والجنس</small></div></button>
               <button class="wizard-step" data-settings-step="2"><span>٢</span><div><strong>المراحل</strong><small>عام أو تحفيظ</small></div></button>
-              <button class="wizard-step" data-settings-step="3"><span>٣</span><div><strong>الصفوف والشعب</strong><small>توليد تلقائي</small></div></button>
+              <button class="wizard-step" data-settings-step="3"><span>٣</span><div><strong>الصفوف والشعب</strong><small>توليد رقمي</small></div></button>
               <button class="wizard-step" data-settings-step="4"><span>٤</span><div><strong>ضوابط النشاط</strong><small>٣٥، ٢٤، ٣٦</small></div></button>
             </div>
-
             <div class="panel wizard-panel">
-              <div class="settings-step-panel active" data-settings-panel="1">
-                <div class="section-heading">
-                  <span class="section-number">١</span>
-                  <div><h2>هوية المدرسة</h2><p>بيانات أساسية تظهر في جميع أجزاء المشروع.</p></div>
-                </div>
-                <div class="form-grid two-cols">
-                  <label class="field full-span">
-                    <span>اسم المدرسة</span>
-                    <input id="schoolNameInput" type="text" placeholder="مثال: مدرسة الراشدية الابتدائية" />
-                  </label>
-                  <div class="field full-span">
-                    <span>الجنس</span>
-                    <div class="choice-cards two">
-                      <button class="choice-card" data-choice="gender" data-value="boys"><span class="choice-icon">♂</span><strong>بنين</strong></button>
-                      <button class="choice-card" data-choice="gender" data-value="girls"><span class="choice-icon">♀</span><strong>بنات</strong></button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="settings-step-panel" data-settings-panel="2">
-                <div class="section-heading">
-                  <span class="section-number">٢</span>
-                  <div><h2>المراحل ونوع التعليم</h2><p>يمكن اختيار أكثر من مرحلة للمجمعات.</p></div>
-                </div>
-                <div id="stageCards" class="stage-cards"></div>
-              </div>
-
-              <div class="settings-step-panel" data-settings-panel="3">
-                <div class="section-heading">
-                  <span class="section-number">٣</span>
-                  <div><h2>الصفوف والشعب</h2><p>تظهر الصفوف تلقائيًا وفق المراحل المختارة.</p></div>
-                </div>
-                <div id="gradesEditor" class="grades-editor empty-state">
-                  <div class="empty-icon">▦</div>
-                  <h3>اختر مرحلة تعليمية أولًا</h3>
-                  <p>بعد اختيار المرحلة سيظهر هنا عدد الشعب لكل صف.</p>
-                </div>
-              </div>
-
-              <div class="settings-step-panel" data-settings-panel="4">
-                <div class="section-heading">
-                  <span class="section-number activity-number">٤</span>
-                  <div><h2>ضوابط تفعيل النشاط</h2><p>القيم الافتراضية مبنية على التصور المتفق عليه.</p></div>
-                </div>
-                <div class="rule-settings-grid">
-                  <label class="metric-field"><span>حصص الصف النظامية</span><input id="regularPeriodsInput" type="number" min="1" value="35"><small>حصة أسبوعيًا</small></label>
-                  <label class="metric-field"><span>نصاب المعلم المستهدف</span><input id="targetLoadInput" type="number" min="1" value="24"><small>حصة أسبوعيًا</small></label>
-                  <label class="metric-field"><span>أسابيع العام</span><input id="weeksInput" type="number" min="1" value="36"><small>أسبوعًا دراسيًا</small></label>
-                  <label class="metric-field activity-metric"><span>حصة النشاط</span><input id="activityWeeklyInput" type="number" min="1" value="1"><small>حصة أسبوعيًا</small></label>
-                </div>
-                <div class="eligibility-box">
-                  <div class="eligibility-icon">✓</div>
-                  <div><strong>تطبيق موجه للخطط التي لا تتضمن حصة نشاط ثابتة</strong><p>مثل الصفوف العليا والمتوسطة في تحفيظ القرآن، أو المدارس التي بلغت أنصبة معلميها ٢٤ حصة.</p></div>
-                </div>
-              </div>
-
-              <div class="wizard-actions">
-                <button id="settingsPrevBtn" class="secondary-button" disabled>السابق</button>
-                <button id="settingsNextBtn" class="primary-button">التالي</button>
-              </div>
+              <div class="settings-step-panel active" data-settings-panel="1"><div class="section-heading"><span class="section-number">١</span><div><h2>هوية المدرسة</h2><p>بيانات أساسية تظهر في جميع أجزاء المشروع.</p></div></div><div class="form-grid two-cols"><label class="field full-span"><span>اسم المدرسة</span><input id="schoolNameInput" type="text" placeholder="مثال: مدرسة الراشدية الابتدائية" /></label><div class="field full-span"><span>الجنس</span><div class="choice-cards two"><button class="choice-card" data-choice="gender" data-value="boys"><span class="choice-icon">♂</span><strong>بنين</strong></button><button class="choice-card" data-choice="gender" data-value="girls"><span class="choice-icon">♀</span><strong>بنات</strong></button></div></div></div></div>
+              <div class="settings-step-panel" data-settings-panel="2"><div class="section-heading"><span class="section-number">٢</span><div><h2>المراحل ونوع التعليم</h2><p>يمكن اختيار أكثر من مرحلة للمجمعات.</p></div></div><div id="stageCards" class="stage-cards"></div></div>
+              <div class="settings-step-panel" data-settings-panel="3"><div class="section-heading"><span class="section-number">٣</span><div><h2>الصفوف والشعب</h2><p>تظهر الصفوف تلقائيًا، وتُسمى الشعب بالأرقام 1 و2 و3.</p></div></div><div id="gradesEditor" class="grades-editor empty-state"><div class="empty-icon">▦</div><h3>اختر مرحلة تعليمية أولًا</h3><p>بعد اختيار المرحلة سيظهر عدد الشعب لكل صف.</p></div></div>
+              <div class="settings-step-panel" data-settings-panel="4"><div class="section-heading"><span class="section-number activity-number">٤</span><div><h2>ضوابط تفعيل النشاط</h2><p>القيم الافتراضية للمدارس المستهدفة بالتطبيق.</p></div></div><div class="rule-settings-grid"><label class="metric-field"><span>حصص الصف النظامية</span><input id="regularPeriodsInput" type="number" min="1" value="35"><small>حصة أسبوعيًا</small></label><label class="metric-field"><span>نصاب المعلم المستهدف</span><input id="targetLoadInput" type="number" min="1" value="24"><small>حصة أسبوعيًا</small></label><label class="metric-field"><span>أسابيع العام</span><input id="weeksInput" type="number" min="1" value="36"><small>أسبوعًا دراسيًا</small></label><label class="metric-field activity-metric"><span>حصة النشاط</span><input id="activityWeeklyInput" type="number" min="1" value="1"><small>حصة لكل فصل أسبوعيًا</small></label></div><div class="eligibility-box"><div class="eligibility-icon">✓</div><div><strong>الحصص تُسحب تلقائيًا من الخطة الدراسية</strong><p>الربط الآلي متاح حاليًا للمرحلتين الابتدائية والمتوسطة، تعليم عام وتحفيظ.</p></div></div><div id="liveEligibilityDiagnostic" class="live-diagnostic" aria-live="polite"></div></div>
+              <div class="wizard-actions"><button id="settingsPrevBtn" class="secondary-button" disabled>السابق</button><button id="settingsNextBtn" class="primary-button">التالي</button></div>
             </div>
           </div>
         </section>
 
-        <!-- Import -->
         <section class="view" data-view-panel="import">
           <div class="import-grid">
-            <article class="panel import-source-panel">
-              <div class="panel-heading">
-                <div><span class="section-kicker">إضافة البيانات</span><h3>استيراد المعلمين</h3></div>
-                <span class="small-badge">Excel أو نص</span>
-              </div>
-              <div class="import-tabs">
-                <button class="import-tab active" data-import-tab="excel">ملف Excel</button>
-                <button class="import-tab" data-import-tab="text">نص مباشر</button>
-              </div>
-              <div class="import-tab-panel active" data-import-panel="excel">
-                <label class="drop-zone" id="dropZone">
-                  <input id="excelInput" type="file" accept=".xlsx,.xls,.csv,text/csv" hidden />
-                  <span class="drop-icon">⇩</span>
-                  <strong>اسحب ملف المعلمين هنا</strong>
-                  <p>يدعم XLSX وXLS وCSV. يبحث تلقائيًا عن الاسم والتخصص والنصاب.</p>
-                  <span class="secondary-button">اختيار ملف</span>
-                </label>
-                <div class="import-hint">عند تعذر تحميل قارئ Excel بسبب عدم الاتصال، احفظ الملف بصيغة CSV أو استخدم الاستيراد النصي.</div>
-              </div>
-              <div class="import-tab-panel" data-import-panel="text">
-                <label class="field">
-                  <span>الصق البيانات</span>
-                  <textarea id="teachersTextInput" rows="12" placeholder="أحمد محمد الغامدي | رياضيات | 24&#10;خالد علي الزهراني | دراسات إسلامية | 24"></textarea>
-                </label>
-                <div class="text-format-note">يفصل النظام بين الحقول باستخدام | أو الفاصلة أو Tab، وكل معلم في سطر مستقل.</div>
-                <button id="parseTextBtn" class="primary-button full-width">قراءة النص</button>
-              </div>
-            </article>
-
-            <article class="panel import-preview-panel">
-              <div class="panel-heading">
-                <div><span class="section-kicker">المعاينة</span><h3>مراجعة البيانات</h3></div>
-                <span id="previewCount" class="small-badge">٠ سجل</span>
-              </div>
-              <div id="importPreview" class="table-wrap empty-table">
-                <div class="empty-icon">▤</div>
-                <h3>لم يتم تحميل بيانات بعد</h3>
-                <p>ستظهر معاينة المعلمين هنا قبل اعتماد الاستيراد.</p>
-              </div>
-              <div class="preview-actions">
-                <button id="clearPreviewBtn" class="secondary-button" disabled>مسح المعاينة</button>
-                <button id="commitImportBtn" class="primary-button" disabled>اعتماد الاستيراد</button>
-              </div>
-            </article>
+            <article class="panel import-source-panel"><div class="panel-heading"><div><span class="section-kicker">إضافة البيانات</span><h3>استيراد المعلمين</h3></div><span class="small-badge">Excel أو نص</span></div><div class="phase2-quick-actions"><button id="downloadTemplateBtn" class="secondary-button" type="button">تحميل نموذج CSV</button><span>يستخرج النظام الاسم والتخصص، ويُكتب النصاب عند عدم وجوده.</span></div><div class="import-tabs"><button class="import-tab active" data-import-tab="excel">ملف Excel</button><button class="import-tab" data-import-tab="text">نص مباشر</button></div><div class="import-tab-panel active" data-import-panel="excel"><label class="drop-zone" id="dropZone"><input id="excelInput" type="file" accept=".xlsx,.xls,.csv,text/csv" hidden /><span class="drop-icon">⇩</span><strong>اسحب ملف المعلمين هنا</strong><p>حدد أعمدة الاسم والتخصص والنصاب قبل إنشاء المعاينة.</p><span class="secondary-button">اختيار ملف</span></label><div class="import-hint">يمكن ترك عمود النصاب غير محدد ثم كتابته في المعاينة.</div></div><div class="import-tab-panel" data-import-panel="text"><label class="field"><span>الصق البيانات</span><textarea id="teachersTextInput" rows="12" placeholder="Tea_1017100908&#9;احمد سعد احمد الغامدي&#9;966530237122&#9;دائم&#9;معلم&#9;دين&#9;دين"></textarea></label><div class="text-format-note">يتعرف النظام على صيغة التصدير التي تبدأ بالمعرف Tea_ ويستخرج الاسم والتخصص تلقائيًا.</div><button id="parseTextBtn" class="primary-button full-width">قراءة النص</button></div></article>
+            <article class="panel import-preview-panel"><div class="panel-heading"><div><span class="section-kicker">المعاينة</span><h3>مراجعة البيانات</h3></div><span id="previewCount" class="small-badge">٠ سجل</span></div><div class="preview-tools"><button id="normalizePreviewBtn" class="secondary-button" type="button">توحيد التخصصات</button><button id="removeDuplicatePreviewBtn" class="secondary-button" type="button">استبعاد المكرر</button><span id="previewQualityBadge" class="quality-badge">بانتظار البيانات</span></div><div id="importPreview" class="table-wrap empty-table"><div class="empty-icon">▤</div><h3>لم يتم تحميل بيانات بعد</h3><p>ستظهر معاينة المعلمين هنا قبل الاعتماد.</p></div><div class="preview-actions"><button id="clearPreviewBtn" class="secondary-button" disabled>مسح المعاينة</button><button id="commitImportBtn" class="primary-button" disabled>اعتماد الاستيراد</button></div></article>
           </div>
         </section>
 
-        <!-- Classify -->
-        <section class="view" data-view-panel="classify">
-          <div class="classify-layout">
-            <aside class="panel teachers-list-panel">
-              <div class="panel-heading compact">
-                <div><span class="section-kicker">المعلمون</span><h3>قائمة التصنيف</h3></div>
-                <span id="teachersListCount" class="small-badge">٠</span>
-              </div>
-              <label class="search-box"><span>⌕</span><input id="teacherSearch" type="search" placeholder="بحث بالاسم أو التخصص"></label>
-              <div id="teachersList" class="teachers-list"></div>
-            </aside>
+        <section class="view" data-view-panel="classify"><div class="classify-layout"><aside class="panel teachers-list-panel"><div class="panel-heading compact"><div><span class="section-kicker">المعلمون</span><h3>قائمة الإسناد</h3></div><span id="teachersListCount" class="small-badge">٠</span></div><label class="search-box"><span>⌕</span><input id="teacherSearch" type="search" placeholder="بحث بالاسم أو التخصص"></label><div id="teachersList" class="teachers-list"></div></aside><section id="teacherEditor" class="panel teacher-editor empty-state"><div class="empty-icon">◫</div><h3>اختر معلمًا لإضافة المواد والفصول</h3><p>عدد الحصص سيظهر تلقائيًا وفق الخطة الدراسية.</p></section></div></section>
 
-            <section id="teacherEditor" class="panel teacher-editor empty-state">
-              <div class="empty-icon">◫</div>
-              <h3>اختر معلمًا لبدء التصنيف</h3>
-              <p>ستظهر المواد والصفوف والشعب والإسنادات في هذه المساحة.</p>
-            </section>
-          </div>
-        </section>
+        <section class="view" data-view-panel="validate"><div class="panel validation-panel"><div class="panel-heading"><div><span class="section-kicker">فحص ما قبل التوزيع</span><h3>التحقق من المعلمين والفصول</h3></div><button id="runValidationBtn" class="primary-button">تشغيل التحقق</button></div><div id="validationSummary" class="validation-summary"></div><div id="validationTable" class="table-wrap empty-table"><div class="empty-icon">✓</div><h3>شغّل التحقق بعد اكتمال الإسنادات</h3><p>سيُفحص نصاب كل معلم، ثم الرصيد المتاح لكل فصل من جميع المعلمين.</p></div></div></section>
 
-        <!-- Validate -->
-        <section class="view" data-view-panel="validate">
-          <div class="panel validation-panel">
-            <div class="panel-heading">
-              <div><span class="section-kicker">فحص ما قبل التوزيع</span><h3>التحقق من الإسنادات والأهلية</h3></div>
-              <button id="runValidationBtn" class="primary-button">تشغيل التحقق</button>
-            </div>
-            <div id="validationSummary" class="validation-summary"></div>
-            <div id="validationTable" class="table-wrap empty-table">
-              <div class="empty-icon">✓</div><h3>شغّل التحقق بعد اكتمال التصنيف</h3><p>سيعرض النظام النصاب، اكتمال الإسناد، الرصيد المتاح، وحالة كل معلم.</p>
-            </div>
-          </div>
-        </section>
-
-        <!-- Distribution -->
-        <section class="view" data-view-panel="distribution">
-          <div class="distribution-toolbar panel">
-            <div>
-              <span class="section-kicker">المحرك الذكي</span>
-              <h3>توزيع حصة النشاط</h3>
-              <p>حصة واحدة أسبوعيًا، موزعة على الإسنادات دون تجاوز نسبة ١٠٪.</p>
-            </div>
-            <div class="toolbar-actions">
-              <button id="generateDistributionBtn" class="activity-button">بدء التوزيع</button>
-              <button id="clearDistributionBtn" class="secondary-button">مسح النتائج</button>
-            </div>
-          </div>
-          <div id="distributionResults" class="distribution-results empty-state panel">
-            <div class="empty-icon activity-empty">●</div>
-            <h3>لم يتم إنشاء توزيع بعد</h3>
-            <p>أكمل الإعدادات والإسنادات، ثم شغّل التحقق قبل بدء التوزيع.</p>
-          </div>
-        </section>
+        <section class="view" data-view-panel="distribution"><div class="distribution-toolbar panel"><div><span class="section-kicker">المقارنة الشاملة</span><h3>توزيع حصة النشاط على الفصول</h3><p>يقارن النظام جميع المعلمين والتخصصات، ثم يحدد المادة المختصر منها والفرق.</p></div><div class="toolbar-actions"><button id="generateDistributionBtn" class="activity-button">بدء التوزيع</button><button id="clearDistributionBtn" class="secondary-button">مسح النتائج</button></div></div><div id="distributionResults" class="distribution-results empty-state panel"><div class="empty-icon activity-empty">●</div><h3>لم يتم إنشاء توزيع بعد</h3><p>أكمل إسنادات المعلمين، ثم شغّل التحقق قبل بدء التوزيع.</p></div></section>
       </div>
     </main>
   </div>
 
-  <template id="teacherEditorTemplate">
-    <div class="teacher-editor-content">
-      <div class="teacher-profile-head">
-        <div class="teacher-avatar"></div>
-        <div class="teacher-main-info">
-          <span class="section-kicker">بيانات المعلم</span>
-          <h2 data-field="teacher-name"></h2>
-          <p data-field="teacher-specialty-display"></p>
-        </div>
-        <div class="load-meter">
-          <div class="load-circle"><strong data-field="load-current">٠</strong><small>/ <span data-field="load-target">٢٤</span></small></div>
-          <span>النصاب المسند</span>
-        </div>
-      </div>
+  <datalist id="specialtyOptions"><option value="القرآن الكريم والدراسات الإسلامية"></option><option value="دراسات إسلامية"></option><option value="لغة عربية"></option><option value="رياضيات"></option><option value="علوم"></option><option value="لغة إنجليزية"></option><option value="دراسات اجتماعية"></option><option value="مهارات رقمية"></option><option value="تربية بدنية"></option><option value="تربية فنية"></option><option value="تجويد"></option><option value="تفكير ناقد"></option><option value="صفوف أولية"></option></datalist>
 
-      <div class="form-grid three-cols teacher-fields">
-        <label class="field"><span>اسم المعلم</span><input data-input="name" type="text"></label>
-        <label class="field"><span>التخصص</span><input data-input="specialty" type="text" placeholder="مثال: رياضيات"></label>
-        <label class="field"><span>النصاب</span><input data-input="load" type="number" min="0" max="40"></label>
-      </div>
-
-      <div class="classification-section">
-        <div class="subsection-heading"><div><h3>المواد التي يدرسها</h3><p>تظهر المواد وفق المراحل ونوع التعليم المختار.</p></div><span data-field="subjects-count" class="small-badge">٠ مادة</span></div>
-        <div data-field="subjects-list" class="check-grid"></div>
-      </div>
-
-      <div class="classification-section">
-        <div class="subsection-heading"><div><h3>الفصول والشعب</h3><p>حدد الفصول التي يدرّسها المعلم.</p></div><span data-field="sections-count" class="small-badge">٠ شعبة</span></div>
-        <div data-field="sections-list" class="check-grid sections-check-grid"></div>
-      </div>
-
-      <div class="classification-section assignment-builder">
-        <div class="subsection-heading"><div><h3>بناء الإسنادات</h3><p>اختر المادة والشعبة وعدد الحصص الأسبوعية.</p></div></div>
-        <div class="assignment-controls">
-          <select data-input="assignment-subject"><option value="">اختر المادة</option></select>
-          <select data-input="assignment-section"><option value="">اختر الشعبة</option></select>
-          <input data-input="assignment-periods" type="number" min="1" max="20" placeholder="الحصص">
-          <button data-action="add-assignment" class="primary-button">إضافة إسناد</button>
-        </div>
-        <div data-field="assignments-table" class="table-wrap compact-table"></div>
-      </div>
-
-      <div class="teacher-editor-actions">
-        <button data-action="delete-teacher" class="danger-ghost-button">حذف المعلم</button>
-        <button data-action="save-teacher" class="primary-button">حفظ بيانات المعلم</button>
-      </div>
-    </div>
-  </template>
+  <dialog id="columnMappingModal" class="mapping-dialog" aria-labelledby="mappingTitle"><form method="dialog" class="mapping-card"><div class="mapping-head"><div><span class="section-kicker">استيراد منظم</span><h2 id="mappingTitle">مطابقة أعمدة الملف</h2><p>حدد العمود المقابل لكل حقل قبل إنشاء المعاينة.</p></div><button class="dialog-close" value="cancel" aria-label="إغلاق">×</button></div><div class="mapping-file-info"><strong id="mappingFileName">ملف المعلمين</strong><span id="mappingRowsCount">٠ صف</span></div><div class="mapping-grid"><label class="field"><span>عمود اسم المعلم <b>*</b></span><select id="mapNameColumn"></select></label><label class="field"><span>عمود التخصص</span><select id="mapSpecialtyColumn"></select></label><label class="field"><span>عمود النصاب</span><select id="mapLoadColumn"></select></label></div><div id="mappingSample" class="mapping-sample"></div><div class="mapping-actions"><button class="secondary-button" value="cancel">إلغاء</button><button id="confirmMappingBtn" class="primary-button" type="button">إنشاء المعاينة</button></div></form></dialog>
 </body>
 </html>

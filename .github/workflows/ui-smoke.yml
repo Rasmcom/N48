@@ -1,0 +1,73 @@
+name: UI smoke tests
+
+on:
+  push:
+    branches:
+      - dev/school-setup-import
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check app3.js
+          node --check ui-hotfix.js
+          node --check import-selection.js
+          node --check print-page.js
+          node --check distribution-report.js
+          node --check tests/ui-smoke.mjs
+          node --check tests/print-gender-smoke.mjs
+          node --check tests/distribution-report-smoke.mjs
+
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --save-dev playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start local server
+        run: |
+          python3 -m http.server 4173 > /tmp/n48-server.log 2>&1 &
+          echo $! > /tmp/n48-server.pid
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:4173 >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/n48-server.log
+          exit 1
+
+      - name: Run UI smoke tests
+        id: smoke
+        continue-on-error: true
+        run: |
+          node tests/ui-smoke.mjs > smoke-output.txt 2>&1
+          node tests/print-gender-smoke.mjs >> smoke-output.txt 2>&1
+          node tests/distribution-report-smoke.mjs >> smoke-output.txt 2>&1
+
+      - name: Print smoke diagnostics
+        if: ${{ always() }}
+        run: cat smoke-output.txt || true
+
+      - name: Upload smoke diagnostics
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-diagnostics
+          path: smoke-output.txt
+
+      - name: Stop on real smoke failure
+        if: ${{ steps.smoke.outcome == 'failure' }}
+        run: exit 1

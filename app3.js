@@ -1,0 +1,342 @@
+(() => {
+  'use strict';
+
+  const DB_NAME = 'activity10LocalDB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'state';
+  const STATE_KEY = 'main';
+
+  const gradeDefinitions = {
+    primary: [['p1','الأول الابتدائي'],['p2','الثاني الابتدائي'],['p3','الثالث الابتدائي'],['p4','الرابع الابتدائي'],['p5','الخامس الابتدائي'],['p6','السادس الابتدائي']],
+    middle: [['m1','الأول المتوسط'],['m2','الثاني المتوسط'],['m3','الثالث المتوسط']],
+    secondary: [['s1','الأول الثانوي'],['s2','الثاني الثانوي'],['s3','الثالث الثانوي']]
+  };
+
+  const stageLabels = {
+    primary: { name: 'المرحلة الابتدائية', short: 'ابتدائي', hint: 'الصفوف من الأول إلى السادس' },
+    middle: { name: 'المرحلة المتوسطة', short: 'متوسط', hint: 'الصفوف من الأول إلى الثالث' },
+    secondary: { name: 'المرحلة الثانوية', short: 'ثانوي', hint: 'يتطلب المسار والفصل الدراسي' }
+  };
+
+  const PLAN = {
+    primary: {
+      general: {
+        p1: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':8,'الرياضيات':5,'العلوم':3,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:3, total:33 },
+        p2: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':7,'الرياضيات':6,'العلوم':3,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:3, total:33 },
+        p3: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':6,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:3, total:33 },
+        p4: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:2, total:33 },
+        p5: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:2, total:33 },
+        p6: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:2, total:33 }
+      },
+      tahfiz: {
+        p1: { subjects: {'القرآن الكريم والدراسات الإسلامية':9,'اللغة العربية':8,'الرياضيات':5,'العلوم':3,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:1, total:35 },
+        p2: { subjects: {'القرآن الكريم والدراسات الإسلامية':9,'اللغة العربية':7,'الرياضيات':6,'العلوم':3,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:1, total:35 },
+        p3: { subjects: {'القرآن الكريم والدراسات الإسلامية':9,'اللغة العربية':6,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':3,'المهارات الحياتية والأسرية':1}, activity:1, total:35 },
+        p4: { subjects: {'القرآن الكريم والدراسات الإسلامية':8,'التجويد':1,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:0, total:35 },
+        p5: { subjects: {'القرآن الكريم والدراسات الإسلامية':8,'التجويد':1,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:0, total:35 },
+        p6: { subjects: {'القرآن الكريم والدراسات الإسلامية':8,'التجويد':1,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':3,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:0, total:35 }
+      }
+    },
+    middle: {
+      general: {
+        m1: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':5,'الدراسات الاجتماعية':3,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:1, total:35 },
+        m2: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':5,'الدراسات الاجتماعية':3,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1}, activity:1, total:35 },
+        m3: { subjects: {'القرآن الكريم والدراسات الإسلامية':5,'اللغة العربية':4,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':2,'التربية البدنية والدفاع عن النفس':2,'المهارات الحياتية والأسرية':1,'التفكير الناقد':2}, activity:1, total:35 }
+      },
+      tahfiz: {
+        m1: { subjects: {'القرآن الكريم والدراسات الإسلامية':8,'التجويد':1,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':1,'المهارات الحياتية والأسرية':1}, activity:0, total:35 },
+        m2: { subjects: {'القرآن الكريم والدراسات الإسلامية':8,'التجويد':1,'اللغة العربية':5,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':1,'المهارات الحياتية والأسرية':1}, activity:0, total:35 },
+        m3: { subjects: {'القرآن الكريم والدراسات الإسلامية':7,'التجويد':1,'اللغة العربية':4,'الدراسات الاجتماعية':2,'الرياضيات':6,'العلوم':4,'اللغة الإنجليزية':4,'المهارات الرقمية':2,'التربية الفنية':1,'التربية البدنية والدفاع عن النفس':1,'المهارات الحياتية والأسرية':1,'التفكير الناقد':2}, activity:0, total:35 }
+      }
+    }
+  };
+
+  const RANKS = { practitioner:'معلم ممارس', advanced:'معلم متقدم', expert:'معلم خبير' };
+  const specialtyAliases = new Map([
+    ['دين','دراسات إسلامية'],['دراسات اسلامية','دراسات إسلامية'],['اسلاميات','دراسات إسلامية'],['إسلاميات','دراسات إسلامية'],['تربية اسلامية','دراسات إسلامية'],
+    ['قرآن','القرآن الكريم والدراسات الإسلامية'],['قران','القرآن الكريم والدراسات الإسلامية'],['تحفيظ','القرآن الكريم والدراسات الإسلامية'],
+    ['رياضيات','رياضيات'],['الرياضيات','رياضيات'],['عربي','لغة عربية'],['لغة عربية','لغة عربية'],['اللغه العربيه','لغة عربية'],
+    ['علوم','علوم'],['العلوم','علوم'],['انجليزي','لغة إنجليزية'],['إنجليزي','لغة إنجليزية'],['لغة انجليزية','لغة إنجليزية'],
+    ['اجتماعيات','دراسات اجتماعية'],['دراسات اجتماعية','دراسات اجتماعية'],['حاسب','مهارات رقمية'],['حاسوب','مهارات رقمية'],['مهارات رقمية','مهارات رقمية'],
+    ['بدنية','تربية بدنية'],['تربية بدنية','تربية بدنية'],['فنية','تربية فنية'],['تربية فنية','تربية فنية'],['تجويد','تجويد'],['تفكير ناقد','تفكير ناقد'],['صفوف اولية','صفوف أولية'],['صفوف أولية','صفوف أولية']
+  ]);
+
+  const defaultState = () => ({
+    version: 3,
+    settings: { schoolName:'', gender:'', stages:{primary:{enabled:false,type:'general'},middle:{enabled:false,type:'general'},secondary:{enabled:false,type:'general'}}, gradeSections:{}, regularPeriods:35, targetLoad:24, weeks:36, activityWeekly:1, currentStep:1 },
+    teachers: [], importPreview: [], validation:{teachers:[],sections:[]}, distributions:[], selectedTeacherId:null, currentView:'dashboard', lastSavedAt:null
+  });
+
+  let state = defaultState();
+  let db;
+  let storageMode = 'indexeddb';
+  let saveTimer;
+  let toastTimer;
+  let pendingWorkbook = null;
+  const selectedTeacherIds = new Set();
+
+  const $ = (s,r=document) => r.querySelector(s);
+  const $$ = (s,r=document) => [...r.querySelectorAll(s)];
+  const uid = (p='id') => `${p}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
+  const ar = (v) => Number(v||0).toLocaleString('ar-SA');
+  const safe = (v='') => String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  const clean = (v='') => String(v).trim().replace(/\s+/g,' ');
+  const key = (v='') => clean(v).toLowerCase().replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي');
+  const canonicalSpecialty = (v='') => {
+    const raw=clean(v); if(!raw) return '';
+    for(const [a,c] of specialtyAliases) if(key(a)===key(raw)) return c;
+    return raw;
+  };
+
+  function mergeState(saved){
+    const base=defaultState();
+    const merged={...base,...(saved||{}),settings:{...base.settings,...(saved?.settings||{}),stages:{...base.settings.stages,...(saved?.settings?.stages||{})},gradeSections:{...(saved?.settings?.gradeSections||{})}}};
+    merged.teachers=(Array.isArray(saved?.teachers)?saved.teachers:[]).map(t=>({id:t.id||uid('teacher'),name:t.name||'',specialty:t.specialty||'',load:t.load==null||t.load===''?null:Number(t.load),rank:t.rank||'practitioner',excluded:Boolean(t.excluded),assignments:Array.isArray(t.assignments)?t.assignments:[]}));
+    merged.importPreview=Array.isArray(saved?.importPreview)?saved.importPreview:[];
+    merged.validation=saved?.validation&& !Array.isArray(saved.validation)?saved.validation:{teachers:[],sections:[]};
+    merged.distributions=Array.isArray(saved?.distributions)?saved.distributions:[];
+    return merged;
+  }
+
+  function openDB(){return new Promise((res,rej)=>{const q=indexedDB.open(DB_NAME,DB_VERSION);q.onupgradeneeded=()=>{if(!q.result.objectStoreNames.contains(STORE_NAME))q.result.createObjectStore(STORE_NAME)};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
+  function readState(){if(storageMode==='localstorage'){try{return Promise.resolve(JSON.parse(localStorage.getItem('activity10State')||'null'))}catch{return Promise.resolve(null)}}return new Promise((res,rej)=>{const q=db.transaction(STORE_NAME,'readonly').objectStore(STORE_NAME).get(STATE_KEY);q.onsuccess=()=>res(q.result||null);q.onerror=()=>rej(q.error)})}
+  function persist(){state.lastSavedAt=new Date().toISOString();if(storageMode==='localstorage'){localStorage.setItem('activity10State',JSON.stringify(state));return Promise.resolve()}return new Promise((res,rej)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).put(state,STATE_KEY);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)})}
+  function scheduleSave(msg='تم الحفظ محليًا'){clearTimeout(saveTimer);$('#saveStatus').textContent='جارٍ الحفظ…';saveTimer=setTimeout(async()=>{try{await persist();$('#saveStatus').textContent=msg}catch(e){console.error(e);$('#saveStatus').textContent='تعذر الحفظ'}},180)}
+  function toast(msg,type=''){const el=$('#toast');el.textContent=msg;el.className=`toast show ${type}`.trim();clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.className='toast',2800)}
+
+  function enabledStages(){return Object.entries(state.settings.stages).filter(([,v])=>v.enabled).map(([k])=>k)}
+  function allGrades(){return enabledStages().flatMap(stage=>gradeDefinitions[stage].map(([id,label])=>({id,label,stage})))}
+  function allSections(){return allGrades().flatMap(g=>Array.from({length:Number(state.settings.gradeSections[g.id]||0)},(_,i)=>({id:`${g.id}_${i+1}`,gradeId:g.id,gradeLabel:g.label,stage:g.stage,number:i+1,label:`${g.label}/${i+1}`})))}
+  function sectionById(id){return allSections().find(s=>s.id===id)}
+  function planForGrade(gradeId){const stage=gradeId?.startsWith('p')?'primary':gradeId?.startsWith('m')?'middle':gradeId?.startsWith('s')?'secondary':null;if(!stage)return null;const type=state.settings.stages[stage]?.type||'general';return PLAN[stage]?.[type]?.[gradeId]||null}
+  function periodsFor(sectionId,subject){const section=sectionById(sectionId);const plan=section?planForGrade(section.gradeId):null;return Number(plan?.subjects?.[subject]||0)}
+  function subjectsForSection(sectionId){const section=sectionById(sectionId);const plan=section?planForGrade(section.gradeId):null;return plan?Object.keys(plan.subjects):[]}
+  function assignmentCapacity(a){return Math.floor(Number(a.weeklyPeriods||0)*Number(state.settings.weeks||36)*.10+1e-9)}
+  function teacherLoad(t){return (t.assignments||[]).reduce((s,a)=>s+Number(a.weeklyPeriods||0),0)}
+  function targetAnnual(){return Number(state.settings.activityWeekly||1)*Number(state.settings.weeks||36)}
+  function settingsComplete(){return Boolean(state.settings.schoolName&&state.settings.gender&&enabledStages().length&&allSections().length)}
+  function teacherComplete(t){return Boolean(t.name&&t.specialty&&Number(t.load)>0&&(t.assignments||[]).length&&teacherLoad(t)===Number(t.load))}
+
+  function viewTitle(v){return {dashboard:'مركز القيادة',settings:'إعداد المدرسة',import:'استيراد المعلمين',classify:'إسناد المواد والفصول',validate:'التحقق من البيانات',distribution:'توزيع حصة النشاط'}[v]||'موزّع حصة النشاط'}
+  function navigate(v){state.currentView=v;$$('.view').forEach(x=>x.classList.toggle('active',x.dataset.viewPanel===v));$$('.nav-item').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('#pageTitle').textContent=viewTitle(v);if(v==='dashboard')renderDashboard();if(v==='settings')renderSettings();if(v==='import')renderImport();if(v==='classify')renderTeachers();if(v==='validate')renderValidation();if(v==='distribution')renderDistributions();updateTopbar();updateNav();closeMobile();scheduleSave()}
+  function updateTopbar(){const stageText=enabledStages().map(k=>stageLabels[k].short).join('، ');$('#schoolNameTop').textContent=state.settings.schoolName||'مدرسة جديدة';$('#schoolMetaTop').textContent=stageText||'لم تكتمل الإعدادات';$('#quickContinueBtn').textContent=settingsComplete()?'متابعة المشروع':'متابعة الإعداد'}
+  function updateNav(){const completeTeachers=state.teachers.length&&state.teachers.every(t=>t.excluded||teacherComplete(t));const val=state.validation?.teachers?.length;const map={dashboard:'complete',settings:settingsComplete()?'complete':(state.settings.schoolName||enabledStages().length?'warning':''),import:state.teachers.length?'complete':'',classify:completeTeachers?'complete':(state.teachers.length?'warning':''),validate:val?(state.validation.teachers.every(x=>['eligible','excluded'].includes(x.status))?'complete':'warning'):'',distribution:state.distributions.length?'complete':''};$$('[data-step-state]').forEach(el=>{const s=map[el.dataset.stepState]||'';el.className=`nav-state ${s}`.trim();el.textContent=s?'●':'○'})}
+
+  function renderDashboard(){
+    const active=state.teachers.filter(t=>!t.excluded);const complete=active.filter(teacherComplete).length;
+    const eligibleSections=allSections().filter(s=>planForGrade(s.gradeId)?.activity===0).length;
+    $('#statTeachers').textContent=ar(state.teachers.length);$('#statComplete').textContent=ar(complete);$('#statEligible').textContent=ar(eligibleSections);$('#statReview').textContent=ar(active.length-complete);
+    const flags=[settingsComplete(),state.teachers.length>0,complete===active.length&&active.length>0,state.validation?.teachers?.length>0,state.distributions.length>0];const progress=Math.round(flags.filter(Boolean).length/flags.length*100);$('#progressPercent').textContent=`${ar(progress)}٪`;$('#progressBar').style.width=`${progress}%`;
+    const steps=[['إعداد المدرسة','الهوية والمراحل والشعب',flags[0]],['استيراد المعلمين','الأسماء والتخصصات والأنصبة',flags[1]],['إسناد المواد والفصول','الحصص تُقرأ تلقائيًا من الدليل',flags[2]],['التحقق','فحص النصاب ورصيد كل فصل',flags[3]],['التوزيع','اختيار المادة المختصر منها لكل فصل',flags[4]]];
+    $('#workflowSteps').innerHTML=steps.map((s,i)=>`<div class="workflow-step ${s[2]?'complete':''}"><span class="step-index">${ar(i+1)}</span><div><strong>${s[0]}</strong><small>${s[1]}</small></div><span class="step-status">${s[2]?'مكتملة':'قيد الإعداد'}</span></div>`).join('');
+  }
+
+  function showSettingsStep(step,persistIt=true){step=Math.max(1,Math.min(4,Number(step)));state.settings.currentStep=step;$$('.settings-step-panel').forEach(x=>x.classList.toggle('active',Number(x.dataset.settingsPanel)===step));$$('.wizard-step').forEach(x=>x.classList.toggle('active',Number(x.dataset.settingsStep)===step));$('#settingsPrevBtn').disabled=step===1;$('#settingsNextBtn').textContent=step===4?'حفظ وإنهاء':'التالي';if(persistIt)scheduleSave()}
+  function renderSettings(){
+    $('#schoolNameInput').value=state.settings.schoolName||'';$$('[data-choice="gender"]').forEach(b=>b.classList.toggle('selected',b.dataset.value===state.settings.gender));$('#regularPeriodsInput').value=state.settings.regularPeriods;$('#targetLoadInput').value=state.settings.targetLoad;$('#weeksInput').value=state.settings.weeks;$('#activityWeeklyInput').value=state.settings.activityWeekly;
+    $('#stageCards').innerHTML=Object.entries(stageLabels).map(([k,m])=>{const st=state.settings.stages[k];return `<article class="stage-card ${st.enabled?'active':''}" data-stage-card="${k}"><div class="stage-card-head"><div><h3>${m.name}</h3><p>${m.hint}</p></div><button class="stage-toggle" data-toggle-stage="${k}" aria-label="تفعيل المرحلة"></button></div><div class="education-types"><button class="type-button ${st.type==='general'?'selected':''}" data-stage-type="${k}" data-type="general">تعليم عام</button><button class="type-button ${st.type==='tahfiz'?'selected':''}" data-stage-type="${k}" data-type="tahfiz">تحفيظ القرآن</button></div></article>`}).join('');
+    const grades=allGrades();const root=$('#gradesEditor');if(!grades.length){root.className='grades-editor empty-state';root.innerHTML='<div class="empty-icon">▦</div><h3>اختر مرحلة تعليمية أولًا</h3><p>بعد اختيار المرحلة سيظهر عدد الشعب لكل صف.</p>'}else{root.className='grades-editor';root.innerHTML=grades.map(g=>{const count=Number(state.settings.gradeSections[g.id]||0);const chips=Array.from({length:count},(_,i)=>`<span class="section-chip">${g.label}/${i+1}</span>`).join('');return `<div class="grade-row"><div><strong>${g.label}</strong><small>${stageLabels[g.stage].name}</small></div><label class="field"><span>عدد الشعب</span><input type="number" min="0" max="20" value="${count}" data-grade-count="${g.id}"></label><div class="sections-preview">${chips||'<span class="status-chip status-neutral">لم تُنشأ شعب</span>'}</div></div>`}).join('')}
+    renderDiagnostic();showSettingsStep(state.settings.currentStep||1,false);
+  }
+  function renderDiagnostic(){const root=$('#liveEligibilityDiagnostic');if(!root)return;const sections=allSections();const auto=sections.filter(s=>planForGrade(s.gradeId));const need=sections.filter(s=>planForGrade(s.gradeId)?.activity===0);const unsupported=sections.filter(s=>!planForGrade(s.gradeId));const items=[{ok:Number(state.settings.regularPeriods)===35,title:'٣٥ حصة نظامية',text:'ضابط التشغيل المعتمد في المشروع.'},{ok:Number(state.settings.targetLoad)===24,title:'نصاب ٢٤ حصة',text:'النصاب المستهدف للمعلمين.'},{ok:Number(state.settings.weeks)===36&&Number(state.settings.activityWeekly)===1,title:'٣٦ حصة نشاط سنويًا',text:'حصة نشاط واحدة لكل فصل أسبوعيًا.'},{ok:auto.length>0&&unsupported.length===0,title:'ربط الدليل',text:unsupported.length?`${ar(unsupported.length)} فصل ثانوي يحتاج تحديد المسار والفصل الدراسي.`:`${ar(auto.length)} فصل مرتبط آليًا، منها ${ar(need.length)} يحتاج توزيع نسبة ١٠٪.`}];root.innerHTML=items.map(x=>`<article class="diagnostic-item ${x.ok?'pass':'attention'}"><span class="diagnostic-icon">${x.ok?'✓':'!'}</span><strong>${x.title}</strong><small>${x.text}</small></article>`).join('')}
+  function validateSettings(step){if(step===1&&!clean(state.settings.schoolName))return'أدخل اسم المدرسة.';if(step===1&&!state.settings.gender)return'حدد بنين أو بنات.';if(step===2&&!enabledStages().length)return'اختر مرحلة واحدة على الأقل.';if(step===3&&!allSections().length)return'أدخل عدد الشعب.';return''}
+
+  function detectName(parts){if(/^Tea_/i.test(parts[0]||'')&&parts[1])return parts[1];const blocked=['دائم','معلم','معلمة','متعاقد','على رأس العمل'];return parts.find(v=>{const t=clean(v);return t.split(' ').length>=3&&/[\u0600-\u06FF]/.test(t)&&!blocked.includes(t)&&!specialtyAliases.has(t)})||parts[0]||''}
+  function detectSpecialty(parts,name){for(const p of parts){const raw=clean(p);if(!raw||raw===name)continue;const c=canonicalSpecialty(raw);if(c!==raw||[...specialtyAliases.values()].includes(c))return c}return''}
+  function detectLoad(parts){for(const p of parts){const raw=clean(p);if(!/^\d{1,2}$/.test(raw))continue;const n=Number(raw);if(n>=1&&n<=40)return n}return null}
+  function parseText(text){return text.split(/\r?\n/).map(line=>String(line).trim()).filter(Boolean).map((line,i)=>{const parts=line.includes('\t')?line.split('\t').map(clean):line.includes('|')?line.split('|').map(clean):line.split(',').map(clean);const name=detectName(parts);const specialty=detectSpecialty(parts,name);const load=detectLoad(parts);return{tempId:uid('preview'),row:i+1,name,specialty,load,status:!name?'error':!specialty||!load?'warning':'complete'}}).filter(x=>x.name)}
+  function renderImport(){renderImportPreview()}
+  function renderImportPreview(){const p=state.importPreview||[];$('#previewCount').textContent=`${ar(p.length)} سجل`;$('#clearPreviewBtn').disabled=!p.length;$('#commitImportBtn').disabled=!p.length||p.some(x=>!x.name||!x.specialty||!Number(x.load));const root=$('#importPreview');if(!p.length){root.className='table-wrap empty-table';root.innerHTML='<div class="empty-icon">▤</div><h3>لم يتم تحميل بيانات بعد</h3><p>ستظهر المعاينة قبل اعتماد الاستيراد.</p>';updatePreviewQuality();return}root.className='table-wrap';root.innerHTML=`<table class="data-table"><thead><tr><th>#</th><th>اسم المعلم</th><th>التخصص</th><th>النصاب</th><th>الحالة</th></tr></thead><tbody>${p.map((x,i)=>`<tr><td>${ar(i+1)}</td><td><input class="inline-input" data-preview-field="name" data-preview-id="${x.tempId}" value="${safe(x.name)}"></td><td><input class="inline-input" list="specialtyOptions" data-preview-field="specialty" data-preview-id="${x.tempId}" value="${safe(x.specialty)}" placeholder="اكتب التخصص"></td><td><input class="inline-input number" type="number" min="1" max="40" data-preview-field="load" data-preview-id="${x.tempId}" value="${x.load??''}" placeholder="اكتب النصاب"></td><td>${previewChip(x)}</td></tr>`).join('')}</tbody></table>`;updatePreviewQuality()}
+  function previewChip(x){if(!x.name)return'<span class="status-chip status-error">اسم غير صالح</span>';if(!x.specialty)return'<span class="status-chip status-warning">التخصص مطلوب</span>';if(!Number(x.load))return'<span class="status-chip status-warning">اكتب النصاب</span>';return'<span class="status-chip status-complete">مكتمل</span>'}
+  function updatePreviewQuality(){const b=$('#previewQualityBadge');if(!b)return;const p=state.importPreview||[];if(!p.length){b.className='quality-badge';b.textContent='بانتظار البيانات';return}const missing=p.filter(x=>!x.name||!x.specialty||!Number(x.load)).length;const seen=new Set();let dup=0;p.forEach(x=>{const k=key(x.name);if(k&&seen.has(k))dup++;seen.add(k)});if(!missing&&!dup){b.className='quality-badge good';b.textContent=`جاهزة للاعتماد · ${ar(p.length)} سجل`}else{b.className='quality-badge warning';b.textContent=`${missing?`${ar(missing)} ناقص`:''}${missing&&dup?' · ':''}${dup?`${ar(dup)} مكرر`:''}`}}
+  function commitImport(){if(state.importPreview.some(x=>!x.name||!x.specialty||!Number(x.load)))return toast('أكمل التخصص والنصاب لجميع المعلمين.','warning');let added=0;state.importPreview.forEach(x=>{const ex=state.teachers.find(t=>key(t.name)===key(x.name));if(ex){ex.specialty=canonicalSpecialty(x.specialty);ex.load=Number(x.load)}else{state.teachers.push({id:uid('teacher'),name:clean(x.name),specialty:canonicalSpecialty(x.specialty),load:Number(x.load),rank:'practitioner',excluded:false,assignments:[]});added++}});state.importPreview=[];renderImportPreview();renderDashboard();updateNav();scheduleSave();toast(`تم اعتماد ${ar(added)} معلمًا جديدًا`,'success');navigate('classify')}
+
+  function matrixFromFile(file){return new Promise(async(res,rej)=>{try{if(!window.XLSX)throw new Error('تعذر تحميل قارئ Excel. استخدم CSV أو النص المباشر.');const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});const sh=wb.Sheets[wb.SheetNames[0]];res(XLSX.utils.sheet_to_json(sh,{header:1,defval:'',raw:false}))}catch(e){rej(e)}})}
+  async function openMapping(file){try{const matrix=await matrixFromFile(file);const rows=matrix.map(r=>r.map(clean)).filter(r=>r.some(Boolean));if(rows.length<2)throw new Error('الملف لا يحتوي على بيانات.');pendingWorkbook={file,headers:rows[0],rows:rows.slice(1)};$('#mappingFileName').textContent=file.name;$('#mappingRowsCount').textContent=`${ar(pendingWorkbook.rows.length)} صف`;fillMap($('#mapNameColumn'),pendingWorkbook.headers,['اسم المعلم','المعلم','الاسم','name'],false);fillMap($('#mapSpecialtyColumn'),pendingWorkbook.headers,['التخصص','تخصص','مادة التخصص','subject'],true);fillMap($('#mapLoadColumn'),pendingWorkbook.headers,['النصاب','الحصص','load'],true);renderMapSample();$('#columnMappingModal').showModal()}catch(e){console.error(e);toast(e.message||'تعذر قراءة الملف','error')}}
+  function fillMap(select,headers,patterns,optional){const idx=headers.findIndex(h=>patterns.some(p=>key(h).includes(key(p))));select.innerHTML=`<option value="">${optional?'غير موجود / إدخال لاحق':'اختر العمود'}</option>`+headers.map((h,i)=>`<option value="${i}">${safe(h||`العمود ${i+1}`)}</option>`).join('');select.value=idx>=0?String(idx):''}
+  function renderMapSample(){if(!pendingWorkbook)return;const n=$('#mapNameColumn').value,s=$('#mapSpecialtyColumn').value,l=$('#mapLoadColumn').value;$('#mappingSample').innerHTML=`<table><thead><tr><th>اسم المعلم</th><th>التخصص</th><th>النصاب</th></tr></thead><tbody>${pendingWorkbook.rows.slice(0,5).map(r=>`<tr><td>${safe(n===''?'':r[Number(n)])}</td><td>${safe(s===''?'':canonicalSpecialty(r[Number(s)]))}</td><td>${safe(l===''?'إدخال يدوي':r[Number(l)])}</td></tr>`).join('')}</tbody></table>`}
+  function confirmMapping(){if(!pendingWorkbook)return;const n=$('#mapNameColumn').value,s=$('#mapSpecialtyColumn').value,l=$('#mapLoadColumn').value;if(n==='')return toast('حدد عمود اسم المعلم.','warning');state.importPreview=pendingWorkbook.rows.map((r,i)=>{const name=clean(r[Number(n)]||'');const specialty=s===''?'':canonicalSpecialty(r[Number(s)]||'');const load=l===''?null:detectLoad([r[Number(l)]]);return{tempId:uid('preview'),row:i+1,name,specialty,load,status:!name?'error':!specialty||!load?'warning':'complete'}}).filter(x=>x.name);pendingWorkbook=null;$('#columnMappingModal').close();renderImportPreview();scheduleSave();toast(`تمت قراءة ${ar(state.importPreview.length)} سجلًا`,'success')}
+
+  function filteredTeachers(){const q=key($('#teacherSearch')?.value||'');return q?state.teachers.filter(t=>key(`${t.name} ${t.specialty}`).includes(q)):state.teachers}
+  function deleteSelectedTeachers(){
+    const ids=[...selectedTeacherIds].filter(id=>state.teachers.some(t=>t.id===id));
+    if(!ids.length)return toast('حدد معلمًا واحدًا على الأقل.','warning');
+    const names=state.teachers.filter(t=>ids.includes(t.id)).map(t=>t.name);
+    if(!confirm(`سيتم حذف ${ids.length} معلمًا وجميع إسناداتهم:
+${names.slice(0,6).join('، ')}${names.length>6?'…':''}
+هل تريد المتابعة؟`))return;
+    const removed=new Set(ids);
+    state.teachers=state.teachers.filter(t=>!removed.has(t.id));
+    if(removed.has(state.selectedTeacherId))state.selectedTeacherId=null;
+    selectedTeacherIds.clear();
+    state.validation={teachers:[],sections:[]};
+    state.distributions=[];
+    renderTeachers();renderDashboard();renderValidation();renderDistributions();updateNav();scheduleSave();
+    toast(`تم حذف ${ar(ids.length)} معلمًا وإسناداتهم`,'success')
+  }
+  function renderTeachers(){
+    [...selectedTeacherIds].forEach(id=>{if(!state.teachers.some(t=>t.id===id))selectedTeacherIds.delete(id)});
+    const list=filteredTeachers();$('#teachersListCount').textContent=ar(state.teachers.length);const root=$('#teachersList');
+    if(!state.teachers.length){selectedTeacherIds.clear();root.innerHTML='<div class="empty-state"><div class="empty-icon">⇩</div><h3>لا يوجد معلمون</h3><p>استورد المعلمين أولًا.</p></div>';$('#teacherEditor').className='panel teacher-editor empty-state';$('#teacherEditor').innerHTML='<div class="empty-icon">◫</div><h3>استورد المعلمين لبدء الإسناد</h3>';return}
+    const selectedCount=selectedTeacherIds.size;
+    const toolbar=`<div class="teacher-bulk-toolbar"><div><strong>إدارة القائمة</strong><small>${selectedCount?`${ar(selectedCount)} معلم محدد`:'حدد أكثر من معلم للحذف الجماعي'}</small></div><div class="teacher-bulk-actions"><button type="button" class="secondary-button" data-select-visible-teachers>تحديد الظاهر</button><button type="button" class="secondary-button" data-clear-teacher-selection ${selectedCount?'':'disabled'}>إلغاء التحديد</button><button type="button" class="danger-ghost-button" data-delete-selected-teachers ${selectedCount?'':'disabled'}>حذف المحددين</button></div></div>`;
+    const rows=list.length?list.map(t=>{const initials=t.name.split(' ').slice(0,2).map(x=>x[0]).join('');const load=teacherLoad(t);return`<div class="teacher-list-row ${selectedTeacherIds.has(t.id)?'bulk-selected':''}"><label class="teacher-bulk-check" title="تحديد المعلم"><input type="checkbox" data-bulk-teacher="${t.id}" ${selectedTeacherIds.has(t.id)?'checked':''}><span></span></label><button type="button" class="teacher-list-item ${state.selectedTeacherId===t.id?'active':''} ${t.excluded?'teacher-excluded':''}" data-select-teacher="${t.id}"><span class="teacher-mini-avatar">${safe(initials)}</span><span><strong>${safe(t.name)}</strong><small>${safe(t.specialty||'التخصص غير محدد')} · ${ar(load)}/${ar(t.load||0)} · ${safe(RANKS[t.rank])}</small></span><span class="teacher-status-dot ${t.excluded?'excluded':teacherComplete(t)?'complete':'warning'}"></span></button></div>`}).join(''):'<div class="empty-state compact"><h3>لا توجد نتائج مطابقة للبحث</h3></div>';
+    root.innerHTML=toolbar+rows;
+    if(state.selectedTeacherId&&state.teachers.some(t=>t.id===state.selectedTeacherId))renderTeacherEditor(state.selectedTeacherId);else if(list[0])selectTeacher(list[0].id)
+  }
+  function selectTeacher(id){state.selectedTeacherId=id;renderTeachers();scheduleSave()}
+  function renderTeacherEditor(id){const t=state.teachers.find(x=>x.id===id);if(!t)return;const root=$('#teacherEditor');root.className='panel teacher-editor';const load=teacherLoad(t);const sections=allSections();root.innerHTML=`<div class="teacher-editor-content">
+    <div class="teacher-profile-head"><div class="teacher-avatar">${safe(t.name.split(' ').slice(0,2).map(x=>x[0]).join(''))}</div><div class="teacher-main-info"><span class="section-kicker">بيانات المعلم وإسناداته</span><h2>${safe(t.name)}</h2><p>${safe(t.specialty||'التخصص غير محدد')}</p></div><div class="load-meter"><div class="load-circle ${load===Number(t.load)?'complete':''}"><strong>${ar(load)}</strong><small>/ ${ar(t.load||0)}</small></div><span>النصاب المسند</span></div></div>
+    <div class="form-grid teacher-meta-grid"><label class="field"><span>اسم المعلم</span><input data-teacher-field="name" value="${safe(t.name)}"></label><label class="field"><span>التخصص</span><input data-teacher-field="specialty" list="specialtyOptions" value="${safe(t.specialty)}"></label><label class="field"><span>النصاب</span><input data-teacher-field="load" type="number" min="1" max="40" value="${t.load??''}"></label><label class="field"><span>الرتبة</span><select data-teacher-field="rank">${Object.entries(RANKS).map(([k,v])=>`<option value="${k}" ${t.rank===k?'selected':''}>${v}</option>`).join('')}</select></label></div>
+    <label class="exclude-teacher-switch"><input data-teacher-field="excluded" type="checkbox" ${t.excluded?'checked':''}><span></span><div><strong>استثناء المعلم من توزيع النشاط</strong><small>تبقى إسناداته محفوظة، ولا تُستخدم حصصه كمصدر لحصة النشاط.</small></div></label>
+    <section class="smart-assignment-panel"><div class="subsection-heading"><div><h3>إضافة مادة وفصل</h3><p>اختر الفصل والمادة؛ يظهر عدد الحصص تلقائيًا من الخطة الدراسية.</p></div><span class="guide-badge">مرتبط بالدليل</span></div><div class="smart-assignment-controls"><label class="field"><span>الفصل والشعبة</span><select id="autoSectionSelect"><option value="">اختر الفصل</option>${sections.map(s=>`<option value="${s.id}">${safe(s.label)}</option>`).join('')}</select></label><label class="field"><span>المادة</span><select id="autoSubjectSelect" disabled><option value="">اختر الفصل أولًا</option></select></label><div id="autoPeriodsPreview" class="auto-periods-preview empty"><span>الحصص</span><strong>—</strong><small>تظهر تلقائيًا</small></div><button id="addAutoAssignmentBtn" class="primary-button" disabled>إضافة المادة والفصل</button></div></section>
+    <section class="classification-section"><div class="subsection-heading"><div><h3>الإسنادات المسجلة</h3><p>الحصص الأسبوعية والسنوية وحد ١٠٪ محسوبة آليًا.</p></div><span class="small-badge">${ar(t.assignments.length)} إسناد</span></div><div id="teacherAssignmentsTable" class="table-wrap compact-table">${renderAssignments(t)}</div></section>
+    <div class="teacher-editor-actions"><button data-action="delete-teacher" class="danger-ghost-button">حذف المعلم</button><button data-action="save-teacher" class="primary-button">حفظ بيانات المعلم</button></div>
+  </div>`}
+  function renderAssignments(t){if(!t.assignments.length)return'<div class="assignment-empty-state"><div class="empty-icon">＋</div><h3>لم تُضف مواد وفصول لهذا المعلم</h3><p>اختر الفصل والمادة أعلاه، وسيحدد النظام عدد الحصص تلقائيًا.</p></div>';return`<table class="data-table"><thead><tr><th>المادة</th><th>الفصل</th><th>الأسبوعي</th><th>السنوي</th><th>حد ١٠٪</th><th>عند تحويل حصة</th><th></th></tr></thead><tbody>${t.assignments.map(a=>{const sec=sectionById(a.sectionId);const w=Number(a.weeklyPeriods);return`<tr><td>${safe(a.subject)}</td><td>${safe(sec?.label||a.sectionLabel||'غير محدد')}</td><td>${ar(w)}</td><td>${ar(w*Number(state.settings.weeks))}</td><td>${ar(assignmentCapacity(a))}</td><td><span class="adjustment-inline"><b>${ar(w)}</b><i>←</i><span>${ar(Math.max(0,w-1))} مادة</span><em>+ ١ نشاط</em></span></td><td><button class="icon-button" data-remove-assignment="${a.id}">×</button></td></tr>`}).join('')}</tbody></table>`}
+  function refreshAutoSubject(){const sectionId=$('#autoSectionSelect')?.value||'';const select=$('#autoSubjectSelect');const preview=$('#autoPeriodsPreview');const add=$('#addAutoAssignmentBtn');if(!select)return;const subjects=subjectsForSection(sectionId);select.disabled=!subjects.length;select.innerHTML=subjects.length?'<option value="">اختر المادة</option>'+subjects.map(s=>`<option value="${safe(s)}">${safe(s)}</option>`).join(''):'<option value="">لا توجد خطة آلية لهذا الفصل</option>';preview.className='auto-periods-preview empty';preview.innerHTML='<span>الحصص</span><strong>—</strong><small>اختر المادة</small>';add.disabled=true}
+  function refreshAutoPeriods(){const sectionId=$('#autoSectionSelect')?.value||'';const subject=$('#autoSubjectSelect')?.value||'';const n=periodsFor(sectionId,subject);const preview=$('#autoPeriodsPreview');const add=$('#addAutoAssignmentBtn');if(n){preview.className='auto-periods-preview ready';preview.innerHTML=`<span>حسب الدليل</span><strong>${ar(n)}</strong><small>حصة أسبوعيًا</small>`;add.disabled=false}else{preview.className='auto-periods-preview empty';preview.innerHTML='<span>الحصص</span><strong>—</strong><small>غير متاحة</small>';add.disabled=true}}
+
+  function runValidation(show=true){const weeks=semesterWeeks();const teacherItems=state.teachers.map(t=>{const current=teacherLoad(t);let status='eligible',message='جاهز للدخول في المقارنة';if(t.excluded){status='excluded';message='مستثنى من التوزيع'}else if(!t.name||!t.specialty||!Number(t.load)){status='error';message='بيانات المعلم غير مكتملة'}else if(!t.assignments.length){status='error';message='لا توجد إسنادات'}else if(current!==Number(t.load)){status='warning';message=`الإسناد ${current} من ${t.load}`}else if(Number(t.load)!==Number(state.settings.targetLoad)){status='warning';message=`النصاب ليس ${state.settings.targetLoad}`}return{teacherId:t.id,teacherName:t.name,specialty:t.specialty,rank:t.rank,targetLoad:Number(t.load||0),currentLoad:current,status,message}});
+    const sectionItems=allSections().map(section=>{const plan=planForGrade(section.gradeId);if(!plan)return{sectionId:section.id,sectionLabel:section.label,status:'unsupported',capacity:0,required:weeks,message:'تحديد مسار وفصل دراسي مطلوب'};if(plan.activity>0)return{sectionId:section.id,sectionLabel:section.label,status:'built-in',capacity:0,required:0,message:`الخطة تتضمن ${plan.activity} حصة نشاط أسبوعيًا`};const candidates=[];state.teachers.filter(t=>!t.excluded).forEach(t=>(t.assignments||[]).filter(a=>a.sectionId===section.id).forEach(a=>candidates.push({teacherId:t.id,capacity:semesterCapacity(a)})));const cap=candidates.reduce((s,x)=>s+x.capacity,0);return{sectionId:section.id,sectionLabel:section.label,status:cap>=weeks?'eligible':'error',capacity:cap,required:weeks,message:cap>=weeks?'جاهز للتوزيع':`الرصيد ${cap} أقل من ${weeks}`}});
+    state.validation={teachers:teacherItems,sections:sectionItems};renderValidation();updateNav();scheduleSave();if(show){const ok=sectionItems.filter(x=>x.status==='eligible').length;toast(`اكتمل التحقق: ${ar(ok)} فصلًا جاهزًا للتوزيع`,ok?'success':'warning')}}
+  function renderValidation(){const root=$('#validationTable'),sum=$('#validationSummary');const t=state.validation?.teachers||[],s=state.validation?.sections||[];if(!t.length&&!s.length){sum.innerHTML='';root.className='table-wrap empty-table';root.innerHTML='<div class="empty-icon">✓</div><h3>شغّل التحقق بعد اكتمال الإسنادات</h3><p>سيُفحص المعلمون ثم كل فصل يحتاج حصة نشاط.</p>';return}const eligible=s.filter(x=>x.status==='eligible').length,problems=s.filter(x=>['error','unsupported'].includes(x.status)).length,excluded=t.filter(x=>x.status==='excluded').length;sum.innerHTML=[['المعلمون',t.length,''],['الفصول الجاهزة',eligible,'success'],['فصول تحتاج مراجعة',problems,'warning'],['معلمون مستثنون',excluded,'']].map(([l,v,c])=>`<div class="validation-summary-card ${c}"><span>${l}</span><strong>${ar(v)}</strong></div>`).join('');root.className='validation-groups';root.innerHTML=`<section><div class="subsection-heading"><div><h3>المعلمون</h3><p>اكتمال النصاب وحالة الاستثناء.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>المعلم</th><th>التخصص</th><th>الرتبة</th><th>النصاب</th><th>المسند</th><th>الحالة</th></tr></thead><tbody>${t.map(x=>`<tr><td>${safe(x.teacherName)}</td><td>${safe(x.specialty)}</td><td>${safe(RANKS[x.rank]||'معلم ممارس')}</td><td>${ar(x.targetLoad)}</td><td>${ar(x.currentLoad)}</td><td><span class="status-chip status-${x.status==='eligible'?'complete':x.status==='excluded'?'neutral':x.status}">${safe(x.message)}</span></td></tr>`).join('')}</tbody></table></div></section><section><div class="subsection-heading"><div><h3>الفصول</h3><p>الرصيد المتاح من جميع المعلمين والتخصصات.</p></div></div><div class="table-wrap"><table class="data-table"><thead><tr><th>الفصل</th><th>الرصيد المتاح</th><th>المطلوب</th><th>الحالة</th></tr></thead><tbody>${s.map(x=>`<tr><td>${safe(x.sectionLabel)}</td><td>${ar(x.capacity)}</td><td>${ar(x.required)}</td><td><span class="status-chip status-${x.status==='eligible'||x.status==='built-in'?'complete':x.status==='unsupported'?'warning':'error'}">${safe(x.message)}</span></td></tr>`).join('')}</tbody></table></div></section>`}
+
+  function specialtyMatch(specialty,subject){const k=key(canonicalSpecialty(specialty));const q=key(subject);return q.includes(k)||k.includes(q)||((k.includes('اسلام')||k.includes('قران'))&&q.includes('القران'))}
+  function semesterWeeks(){return Math.max(1,Math.floor(Number(state.settings.weeks||36)/2))}
+  function semesterCapacity(a){return Math.floor(Number(a.weeklyPeriods||0)*semesterWeeks()*.10+1e-9)}
+  function teacherSemesterSectionLimit(t){return Number(t.load||0)<=Math.max(1,Number(state.settings.targetLoad||24)-6)?2:1}
+  function distributionConfig(){state.distributionConfig={secondSemesterMode:'keep',activeSemester:1,...(state.distributionConfig||{})};return state.distributionConfig}
+  function ensureSemesterControls(){
+    const toolbar=$('.distribution-toolbar');if(!toolbar)return;
+    const config=distributionConfig();
+    if(!$('#semesterDistributionStyles')){const style=document.createElement('style');style.id='semesterDistributionStyles';style.textContent=`.semester-control-panel{margin:14px 0 0;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--surface-soft);display:grid;gap:12px}.semester-control-panel>strong{color:var(--navy-950);font-size:13px}.semester-mode-options{display:grid;grid-template-columns:1fr 1fr;gap:10px}.semester-mode-option{display:flex;align-items:flex-start;gap:9px;padding:12px;border:1px solid var(--border);border-radius:13px;background:#fff;cursor:pointer}.semester-mode-option:has(input:checked){border-color:var(--teal-500);background:var(--teal-100);box-shadow:inset -3px 0 0 var(--teal-600)}.semester-mode-option input{margin-top:3px;accent-color:var(--teal-700)}.semester-mode-option strong,.semester-mode-option small{display:block}.semester-mode-option strong{font-size:12px;color:var(--navy-950)}.semester-mode-option small{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.7}.semester-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.semester-tab{padding:10px 16px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--muted);font-weight:800}.semester-tab.active{background:var(--navy-900);border-color:var(--navy-900);color:#fff}.semester-rule-note{padding:12px 14px;border:1px solid #c9e5e7;border-radius:13px;background:var(--teal-100);color:var(--teal-700);font-size:11px;line-height:1.8}.semester-source-range{display:inline-flex;margin-top:5px;padding:4px 8px;border-radius:999px;background:var(--surface-soft);color:var(--teal-700);font-size:10px;font-weight:800}.semester-incomplete{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--activity-soft);color:var(--danger);font-size:11px;font-weight:700}@media(max-width:700px){.semester-mode-options{grid-template-columns:1fr}.semester-tabs{display:grid;grid-template-columns:1fr 1fr}.semester-tab{width:100%}}`;document.head.appendChild(style)}
+    if(!$('#semesterDistributionControls')){const controls=document.createElement('div');controls.id='semesterDistributionControls';controls.className='semester-control-panel';controls.innerHTML=`<strong>طريقة توزيع الفصل الدراسي الثاني</strong><div class="semester-mode-options"><label class="semester-mode-option"><input type="radio" name="secondSemesterMode" value="keep"><span><strong>الإبقاء على توزيع الفصل الأول</strong><small>نفس المعلمين والمواد والشعب في الأسابيع الثمانية عشر التالية.</small></span></label><label class="semester-mode-option"><input type="radio" name="secondSemesterMode" value="different"><span><strong>إنشاء توزيع مختلف</strong><small>يعيد المقارنة مع تفضيل معلمين ومواد مختلفة قدر الإمكان.</small></span></label></div><div class="semester-rule-note">يفترض النظام أن حصة النشاط في وقت موحد؛ لذلك لا يُسند المعلم إلى شعبتين في الأسبوع نفسه. يمكن للمعلم الانتقال بين شعب مختلفة في أسابيع مختلفة، ولا يُحجز لشعبة واحدة طوال الفصل.</div>`;toolbar.appendChild(controls);controls.addEventListener('change',e=>{if(e.target.name==='secondSemesterMode'){config.secondSemesterMode=e.target.value;scheduleSave();toast('تم حفظ طريقة الفصل الثاني. أعد التوزيع لتطبيقها.','success')}})}
+    $$('[name="secondSemesterMode"]').forEach(input=>input.checked=input.value===config.secondSemesterMode)
+  }
+  function semesterSourceGroups(sectionId){
+    const groups=new Map();
+    state.teachers.filter(t=>!t.excluded&&teacherComplete(t)).forEach(t=>(t.assignments||[]).filter(a=>a.sectionId===sectionId).forEach(a=>{const capacity=semesterCapacity(a);if(!capacity)return;const group=groups.get(t.id)||{teacher:t,assignments:[],totalCapacity:0,maxPeriods:0};group.assignments.push({id:a.id,teacherId:t.id,teacherName:t.name,specialty:t.specialty,subject:a.subject,weeklyPeriods:Number(a.weeklyPeriods),capacity,remaining:capacity});group.totalCapacity+=capacity;group.maxPeriods=Math.max(group.maxPeriods,Number(a.weeklyPeriods));groups.set(t.id,group)}));
+    return [...groups.values()]
+  }
+  function cloneSemesterDistribution(firstMap){
+    const length=semesterWeeks();const cloned=new Map();
+    firstMap.forEach((item,sectionId)=>{cloned.set(sectionId,{...item,semester:2,weeks:item.weeks.map(w=>({...w,semester:2,annualWeek:length+w.semesterWeek})),summary:item.summary.map(x=>({...x})),mode:'keep'})});
+    return cloned
+  }
+  function distributeSemester(semester,ready,firstMap=null){
+    const length=semesterWeeks();
+    const teacherActivityCount=new Map();
+    const teacherSectionUse=new Map();
+    const firstPairs=new Map();
+    if(firstMap)firstMap.forEach((item,sectionId)=>firstPairs.set(sectionId,new Set(item.summary.map(x=>`${x.teacherId}|${x.subject}`))));
+    const models=allSections().filter(s=>ready.has(s.id)).map(section=>({
+      section,
+      candidates:semesterSourceGroups(section.id).flatMap(group=>group.assignments.map(a=>({...a,teacher:group.teacher}))),
+      weeks:[],blocks:[],currentSourceId:'',currentTeacherId:'',closedSources:new Set()
+    }));
+
+    const candidateOptions=(model,usedTeachers)=>{
+      const firstSet=firstPairs.get(model.section.id)||new Set();
+      const byTeacher=new Map();
+      model.candidates.forEach(candidate=>{
+        if(candidate.remaining<=0||model.closedSources.has(candidate.id)||usedTeachers.has(candidate.teacherId))return;
+        const sameSource=candidate.id===model.currentSourceId?1:0;
+        const sameTeacher=candidate.teacherId===model.currentTeacherId?1:0;
+        const repeatedPair=firstSet.has(`${candidate.teacherId}|${candidate.subject}`)?1:0;
+        const repeatedTeacher=[...firstSet].some(pair=>pair.startsWith(`${candidate.teacherId}|`))?1:0;
+        const load=Number(candidate.teacher.load||state.settings.targetLoad||24);
+        const lowLoadAdvantage=Math.max(0,Number(state.settings.targetLoad||24)-load);
+        const sectionSet=teacherSectionUse.get(candidate.teacherId)||new Set();
+        const score=sameSource*1000000+sameTeacher*180000+Number(candidate.weeklyPeriods)*5000+(specialtyMatch(candidate.specialty,candidate.subject)?1200:0)+candidate.remaining*90+lowLoadAdvantage*150-(teacherActivityCount.get(candidate.teacherId)||0)*35-sectionSet.size*260-(semester===2?repeatedPair*50000+repeatedTeacher*12000:0);
+        const existing=byTeacher.get(candidate.teacherId);
+        if(!existing||score>existing.score)byTeacher.set(candidate.teacherId,{candidate,score})
+      });
+      return[...byTeacher.values()].sort((a,b)=>b.score-a.score)
+    };
+
+    for(let week=1;week<=length;week+=1){
+      let best=[];
+      let bestScore=-Infinity;
+      const search=(pending,usedTeachers,chosen,totalScore)=>{
+        if(chosen.length>best.length||(chosen.length===best.length&&totalScore>bestScore)){best=[...chosen];bestScore=totalScore}
+        if(!pending.length)return true;
+        let pickIndex=0;let pickOptions=null;
+        for(let i=0;i<pending.length;i+=1){const options=candidateOptions(pending[i],usedTeachers);if(pickOptions===null||options.length<pickOptions.length){pickIndex=i;pickOptions=options;if(!options.length)break}}
+        const model=pending[pickIndex];
+        const rest=pending.filter((_,index)=>index!==pickIndex);
+        for(const option of (pickOptions||[]).slice(0,10)){
+          usedTeachers.add(option.candidate.teacherId);chosen.push({model,option});
+          if(search(rest,usedTeachers,chosen,totalScore+option.score)&&best.length===models.length)return true;
+          chosen.pop();usedTeachers.delete(option.candidate.teacherId)
+        }
+        search(rest,usedTeachers,chosen,totalScore-1000000);
+        return false
+      };
+      search(models,new Set(),[],0);
+      const selected=new Map(best.map(x=>[x.model.section.id,x.option.candidate]));
+      models.forEach(model=>{
+        const candidate=selected.get(model.section.id);if(!candidate)return;
+        if(model.currentSourceId&&model.currentSourceId!==candidate.id)model.closedSources.add(model.currentSourceId);
+        model.currentSourceId=candidate.id;model.currentTeacherId=candidate.teacherId;candidate.remaining-=1;
+        const item={semester,semesterWeek:week,annualWeek:(semester-1)*length+week,teacherId:candidate.teacherId,teacherName:candidate.teacherName,specialty:candidate.specialty,subject:candidate.subject,weeklyPeriods:candidate.weeklyPeriods,capacity:candidate.capacity};
+        model.weeks.push(item);
+        const last=model.blocks.at(-1);
+        if(last&&last.sourceId===candidate.id&&last.endWeek===week-1){last.endWeek=week;last.used+=1}else{model.blocks.push({sourceId:candidate.id,teacherId:candidate.teacherId,teacherName:candidate.teacherName,subject:candidate.subject,weeklyPeriods:candidate.weeklyPeriods,used:1,capacity:candidate.capacity,startWeek:week,endWeek:week})}
+        teacherActivityCount.set(candidate.teacherId,(teacherActivityCount.get(candidate.teacherId)||0)+1);
+        const set=teacherSectionUse.get(candidate.teacherId)||new Set();set.add(model.section.id);teacherSectionUse.set(candidate.teacherId,set)
+      })
+    }
+
+    const result=new Map();
+    models.forEach(model=>result.set(model.section.id,{semester,sectionId:model.section.id,sectionLabel:model.section.label,weeks:model.weeks,summary:model.blocks,complete:model.weeks.length===length,missing:length-model.weeks.length,mode:semester===1?'first':'different'}));
+    return result
+  }
+  function generateDistributions(){
+    runValidation(false);
+    const ready=new Set((state.validation.sections||[]).filter(x=>x.status==='eligible').map(x=>x.sectionId));
+    if(!ready.size)return toast('لا توجد فصول جاهزة للتوزيع. راجع الإسنادات أولًا.','warning');
+    const config=distributionConfig();
+    const firstMap=distributeSemester(1,ready,null);
+    const secondMap=config.secondSemesterMode==='keep'?cloneSemesterDistribution(firstMap):distributeSemester(2,ready,firstMap);
+    state.distributions=allSections().filter(s=>ready.has(s.id)).map(section=>({id:uid('distribution'),sectionId:section.id,sectionLabel:section.label,semesters:[firstMap.get(section.id),secondMap.get(section.id)]}));
+    config.activeSemester=1;
+    renderDistributions();renderDashboard();updateNav();scheduleSave();
+    const firstComplete=[...firstMap.values()].filter(x=>x.complete).length,secondComplete=[...secondMap.values()].filter(x=>x.complete).length;
+    toast(`الفصل الأول: ${ar(firstComplete)} مكتمل · الفصل الثاني: ${ar(secondComplete)} مكتمل`,(firstComplete&&secondComplete)?'success':'warning')
+  }
+  function renderDistributions(){
+    ensureSemesterControls();const root=$('#distributionResults');const config=distributionConfig();
+    if(!state.distributions.length){root.className='distribution-results empty-state panel';root.innerHTML='<div class="empty-icon activity-empty">●</div><h3>لم يتم إنشاء توزيع بعد</h3><p>سيُنشأ توزيع مستقل لـ١٨ أسبوعًا في كل فصل دراسي، دون تعارض المعلم بين الشعب.</p>';return}
+    if(state.distributions.some(item=>!Array.isArray(item.semesters))){root.className='distribution-results empty-state panel';root.innerHTML='<div class="empty-icon activity-empty">●</div><h3>النتائج المحفوظة أُنشئت بالنظام السابق</h3><p>اضغط مسح النتائج ثم ابدأ التوزيع لإنشاء فصلين دراسيين مستقلين.</p>';return}
+    const active=Number(config.activeSemester||1);const semesterLabel=active===1?'الفصل الدراسي الأول':'الفصل الدراسي الثاني';
+    const current=state.distributions.map(item=>({...item,semester:item.semesters.find(s=>s.semester===active)}));
+    const complete=current.filter(x=>x.semester?.complete).length;const uniqueTeachers=new Set(current.flatMap(x=>x.semester?.weeks||[]).map(w=>w.teacherId));
+    root.className='distribution-results panel';
+    root.innerHTML=`<div class="semester-tabs"><button class="semester-tab ${active===1?'active':''}" data-semester-tab="1">الفصل الدراسي الأول · ١٨ أسبوعًا</button><button class="semester-tab ${active===2?'active':''}" data-semester-tab="2">الفصل الدراسي الثاني · ١٨ أسبوعًا</button></div><div class="global-distribution-summary"><div><span class="section-kicker">${semesterLabel}</span><h3>توزيع موحد بلا تعارض بين الشعب</h3><p>تبدأ المقارنة بالمواد الأعلى حصصًا، ثم تقارن أنصبة المعلمين، ويُثبت المعلم على شعبة واحدة في الأسبوع نفسه.</p></div><div class="global-metrics"><span><strong>${ar(complete)}</strong> فصل مكتمل</span><span><strong>${ar(uniqueTeachers.size)}</strong> معلم مشارك</span><span><strong>٠</strong> تعارض زمني</span></div></div>${current.map(item=>{const sem=item.semester;return`<article class="section-distribution-card"><div class="distribution-card-head"><div><span class="section-kicker">الفصل المستفيد</span><h3>${safe(item.sectionLabel)}</h3><p>${sem.complete?`اكتمل توزيع ${ar(semesterWeeks())} أسبوعًا`:`تبقى ${ar(sem.missing)} أسابيع دون معلم متاح`}</p></div><span class="status-chip ${sem.complete?'status-complete':'status-error'}">${sem.complete?'جاهز':'ناقص'}</span></div><div class="distribution-body section-result-body"><div><div class="subsection-heading"><div><h3>المواد والمعلمون</h3><p>فترات متصلة مع أولوية المادة الأعلى وعدد شعب أقل لكل معلم.</p></div></div><div class="source-summary-list">${sem.summary.map(x=>`<div class="source-summary-item"><div><strong>${safe(x.subject)}</strong><small>${safe(x.teacherName)} · مستخدم ${ar(x.used)} من ${ar(x.capacity)}</small><span class="semester-source-range">الأسابيع ${ar(x.startWeek)}–${ar(x.endWeek)}</span></div><div class="adjustment-equation"><b>${ar(x.weeklyPeriods)}</b><i>←</i><span>${ar(Math.max(0,x.weeklyPeriods-1))} مادة</span><em>+ ١ نشاط</em><u>الفرق -١ / +١</u></div></div>`).join('')||'<div class="semester-incomplete">لم يتوفر معلم صالح دون تعارض لهذه الشعبة.</div>'}</div>${!sem.complete?`<div class="semester-incomplete">سبب النقص: لم تتوفر مطابقة كاملة بين جميع الشعب والمعلمين في بعض الأسابيع. أضف إسناد مادة لمعلم مختلف في هذه الشعبة، أو أضف معلمًا آخر، مع بقاء منع تكرار المعلم في شعبتين خلال الأسبوع نفسه.</div>`:''}</div><div><div class="subsection-heading"><div><h3>أسابيع ${semesterLabel}</h3><p>رقم الأسبوع داخل الفصل والرقم السنوي المقابل.</p></div></div><div class="weeks-grid">${sem.weeks.map(w=>`<div class="week-item"><strong>الأسبوع ${ar(w.semesterWeek)}</strong><span>${safe(w.subject)}</span><small>${safe(w.teacherName)} · سنوي ${ar(w.annualWeek)}</small><div class="week-difference">${ar(w.weeklyPeriods)} ← ${ar(Math.max(0,w.weeklyPeriods-1))} مادة + ١ نشاط</div></div>`).join('')}</div></div></div></article>`}).join('')}`;
+    $$('.semester-tab',root).forEach(button=>button.addEventListener('click',()=>{config.activeSemester=Number(button.dataset.semesterTab);scheduleSave();renderDistributions()}))
+  }
+
+  function backup(){const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(state.settings.schoolName||'مشروع-النشاط').replace(/\s+/g,'-')}-نسخة-احتياطية.json`;a.click();URL.revokeObjectURL(url);toast('تم إنشاء النسخة الاحتياطية','success')}
+  async function restore(file){try{state=mergeState(JSON.parse(await file.text()));await persist();renderAll();toast('تمت استعادة النسخة','success')}catch(e){console.error(e);toast('ملف النسخة غير صالح','error')}}
+  async function clearBrowserData(){if(!confirm('سيتم حذف جميع بيانات المدرسة والمعلمين والتوزيعات من هذا المتصفح. هل تريد المتابعة؟'))return;try{if(db)db.close();await new Promise(res=>{const q=indexedDB.deleteDatabase(DB_NAME);q.onsuccess=q.onerror=q.onblocked=()=>res()});localStorage.removeItem('activity10State');localStorage.removeItem('activity10SidebarCollapsed');location.reload()}catch(e){console.error(e);toast('تعذر مسح البيانات','error')}}
+  function downloadTemplate(){const rows=[['المعرف','اسم المعلم','رقم الجوال','الحالة','الوظيفة','التخصص','مادة التخصص','النصاب'],['Tea_1017100908','أحمد سعد أحمد الغامدي','966530237122','دائم','معلم','دين','دين','']];const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='نموذج-استيراد-المعلمين.csv';a.click();URL.revokeObjectURL(url)}
+
+  const mobileMedia=matchMedia('(max-width:900px)');
+  function closeMobile(){$('.app-shell')?.classList.remove('sidebar-mobile-open');document.body.classList.remove('mobile-menu-open');$('#mobileMenuBtn')?.setAttribute('aria-expanded','false')}
+  function applySidebar(collapsed){if(mobileMedia.matches)return;$('.app-shell').classList.toggle('sidebar-collapsed',collapsed);$('.sidebar').classList.toggle('collapsed',collapsed);localStorage.setItem('activity10SidebarCollapsed',collapsed?'1':'0')}
+
+  function bind(){
+    const clearBtn=document.createElement('button');clearBtn.id='clearBrowserDataBtn';clearBtn.className='danger-sidebar-button full-width';clearBtn.textContent='مسح بيانات المتصفح';$('.sidebar-footer').appendChild(clearBtn);
+    $('#sideNav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)navigate(b.dataset.view)});document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)navigate(b.dataset.go)});$('#quickContinueBtn').addEventListener('click',()=>navigate(settingsComplete()?(state.teachers.length?'classify':'import'):'settings'));
+    $('#sidebarToggle').addEventListener('click',()=>{if(mobileMedia.matches)return closeMobile();applySidebar(!$('.app-shell').classList.contains('sidebar-collapsed'))});$('#mobileMenuBtn').addEventListener('click',()=>{$('.app-shell').classList.toggle('sidebar-mobile-open');document.body.classList.toggle('mobile-menu-open')});$('#sidebarBackdrop').addEventListener('click',closeMobile);document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobile()});
+    $('#schoolNameInput').addEventListener('input',e=>{state.settings.schoolName=e.target.value;updateTopbar();scheduleSave()});$$('[data-choice="gender"]').forEach(b=>b.addEventListener('click',()=>{state.settings.gender=b.dataset.value;renderSettings();scheduleSave()}));$('#stageCards').addEventListener('click',e=>{const tog=e.target.closest('[data-toggle-stage]');if(tog){const k=tog.dataset.toggleStage;state.settings.stages[k].enabled=!state.settings.stages[k].enabled;if(!state.settings.stages[k].enabled)gradeDefinitions[k].forEach(([id])=>delete state.settings.gradeSections[id]);renderSettings();scheduleSave();return}const type=e.target.closest('[data-stage-type]');if(type){state.settings.stages[type.dataset.stageType].type=type.dataset.type;renderSettings();scheduleSave()}});$('#gradesEditor').addEventListener('input',e=>{const i=e.target.closest('[data-grade-count]');if(i){state.settings.gradeSections[i.dataset.gradeCount]=Math.max(0,Number(i.value||0));renderSettings();scheduleSave()}});['regularPeriodsInput','targetLoadInput','weeksInput','activityWeeklyInput'].forEach(id=>$('#'+id).addEventListener('input',e=>{const m={regularPeriodsInput:'regularPeriods',targetLoadInput:'targetLoad',weeksInput:'weeks',activityWeeklyInput:'activityWeekly'};state.settings[m[id]]=Math.max(1,Number(e.target.value||1));renderDiagnostic();scheduleSave()}));$$('.wizard-step').forEach(b=>b.addEventListener('click',()=>showSettingsStep(b.dataset.settingsStep)));$('#settingsPrevBtn').addEventListener('click',()=>showSettingsStep(state.settings.currentStep-1));$('#settingsNextBtn').addEventListener('click',()=>{const err=validateSettings(state.settings.currentStep);if(err)return toast(err,'warning');if(state.settings.currentStep===4){scheduleSave();toast('تم حفظ إعداد المدرسة','success');navigate('import')}else showSettingsStep(state.settings.currentStep+1)});
+    $$('.import-tab').forEach(b=>b.addEventListener('click',()=>{$$('.import-tab').forEach(x=>x.classList.toggle('active',x===b));$$('.import-tab-panel').forEach(x=>x.classList.toggle('active',x.dataset.importPanel===b.dataset.importTab))}));$('#parseTextBtn').addEventListener('click',()=>{state.importPreview=parseText($('#teachersTextInput').value);renderImportPreview();scheduleSave();toast(`تمت قراءة ${ar(state.importPreview.length)} سجلًا`,'success')});$('#excelInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)openMapping(f)});const dz=$('#dropZone');['dragenter','dragover'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.add('dragover')}));['dragleave','drop'].forEach(t=>dz.addEventListener(t,e=>{e.preventDefault();dz.classList.remove('dragover')}));dz.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)openMapping(f)});['mapNameColumn','mapSpecialtyColumn','mapLoadColumn'].forEach(id=>$('#'+id).addEventListener('change',renderMapSample));$('#confirmMappingBtn').addEventListener('click',confirmMapping);$('#downloadTemplateBtn').addEventListener('click',downloadTemplate);$('#normalizePreviewBtn').addEventListener('click',()=>{state.importPreview.forEach(x=>{x.name=clean(x.name);x.specialty=canonicalSpecialty(x.specialty)});renderImportPreview();scheduleSave()});$('#removeDuplicatePreviewBtn').addEventListener('click',()=>{const seen=new Set();state.importPreview=state.importPreview.filter(x=>{const k=key(x.name);if(seen.has(k))return false;seen.add(k);return true});renderImportPreview();scheduleSave()});$('#importPreview').addEventListener('input',e=>{const i=e.target.closest('[data-preview-field]');if(!i)return;const x=state.importPreview.find(v=>v.tempId===i.dataset.previewId);if(!x)return;x[i.dataset.previewField]=i.dataset.previewField==='load'?(i.value?Number(i.value):null):i.value;x.status=!x.name?'error':!x.specialty||!Number(x.load)?'warning':'complete';$('#commitImportBtn').disabled=!state.importPreview.length||state.importPreview.some(v=>!v.name||!v.specialty||!Number(v.load));const row=i.closest('tr');if(row&&row.lastElementChild)row.lastElementChild.innerHTML=previewChip(x);updatePreviewQuality();scheduleSave()});$('#clearPreviewBtn').addEventListener('click',()=>{state.importPreview=[];renderImportPreview();scheduleSave()});$('#commitImportBtn').addEventListener('click',commitImport);
+    $('#teacherSearch').addEventListener('input',renderTeachers);$('#teachersList').addEventListener('click',e=>{const selectVisible=e.target.closest('[data-select-visible-teachers]');if(selectVisible){filteredTeachers().forEach(t=>selectedTeacherIds.add(t.id));renderTeachers();return}if(e.target.closest('[data-clear-teacher-selection]')){selectedTeacherIds.clear();renderTeachers();return}if(e.target.closest('[data-delete-selected-teachers]')){deleteSelectedTeachers();return}const check=e.target.closest('[data-bulk-teacher]');if(check){check.checked?selectedTeacherIds.add(check.dataset.bulkTeacher):selectedTeacherIds.delete(check.dataset.bulkTeacher);renderTeachers();return}const b=e.target.closest('[data-select-teacher]');if(b)selectTeacher(b.dataset.selectTeacher)});$('#teacherEditor').addEventListener('change',e=>{if(e.target.id==='autoSectionSelect')return refreshAutoSubject();if(e.target.id==='autoSubjectSelect')return refreshAutoPeriods()});$('#teacherEditor').addEventListener('click',e=>{const t=state.teachers.find(x=>x.id===state.selectedTeacherId);if(!t)return;const remove=e.target.closest('[data-remove-assignment]');if(remove){t.assignments=t.assignments.filter(a=>a.id!==remove.dataset.removeAssignment);renderTeacherEditor(t.id);renderTeachers();scheduleSave();return}if(e.target.closest('#addAutoAssignmentBtn')){const sectionId=$('#autoSectionSelect').value,subject=$('#autoSubjectSelect').value,n=periodsFor(sectionId,subject);if(!sectionId||!subject||!n)return toast('اختر الفصل والمادة.','warning');if(t.assignments.some(a=>a.sectionId===sectionId&&a.subject===subject))return toast('هذا الإسناد موجود مسبقًا.','warning');t.assignments.push({id:uid('assignment'),sectionId,sectionLabel:sectionById(sectionId)?.label,subject,weeklyPeriods:n});renderTeacherEditor(t.id);renderTeachers();renderDashboard();updateNav();scheduleSave();toast(`تمت إضافة ${subject} بعدد ${n} حصص`,'success');return}if(e.target.closest('[data-action="save-teacher"]')){t.name=clean($('[data-teacher-field="name"]').value);t.specialty=canonicalSpecialty($('[data-teacher-field="specialty"]').value);t.load=Number($('[data-teacher-field="load"]').value)||null;t.rank=$('[data-teacher-field="rank"]').value;t.excluded=$('[data-teacher-field="excluded"]').checked;renderTeachers();renderDashboard();updateNav();scheduleSave();toast('تم حفظ بيانات المعلم','success');return}if(e.target.closest('[data-action="delete-teacher"]')){if(confirm(`حذف المعلم ${t.name}؟`)){state.teachers=state.teachers.filter(x=>x.id!==t.id);state.selectedTeacherId=null;renderTeachers();renderDashboard();updateNav();scheduleSave()}}});
+    $('#runValidationBtn').addEventListener('click',()=>runValidation(true));$('#generateDistributionBtn').addEventListener('click',generateDistributions);$('#clearDistributionBtn').addEventListener('click',()=>{state.distributions=[];renderDistributions();updateNav();scheduleSave();toast('تم مسح نتائج التوزيع','success')});$('#backupBtn').addEventListener('click',backup);$('#restoreInput').addEventListener('change',e=>{const f=e.target.files[0];if(f)restore(f);e.target.value=''});clearBtn.addEventListener('click',clearBrowserData);
+  }
+
+  function renderAll(){updateTopbar();renderDashboard();renderSettings();renderImportPreview();renderTeachers();renderValidation();renderDistributions();updateNav();navigate(state.currentView||'dashboard')}
+  async function init(){try{db=await openDB();const saved=await readState();if(saved)state=mergeState(saved)}catch(e){console.error(e);storageMode='localstorage';state=mergeState(await readState())}bind();applySidebar(!mobileMedia.matches&&localStorage.getItem('activity10SidebarCollapsed')==='1');renderAll()}
+  document.addEventListener('DOMContentLoaded',init);
+})();
