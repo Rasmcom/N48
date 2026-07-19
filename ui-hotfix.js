@@ -8,6 +8,7 @@
       .forEach((button) => button.setAttribute('type', 'button'));
   }
 
+  /* تحميل صفحة الطباعة كجزء مستقل حتى لا تؤثر في منطق التوزيع. */
   function loadPrintModule() {
     if (!document.querySelector('link[data-activity-print-style]')) {
       const link = document.createElement('link');
