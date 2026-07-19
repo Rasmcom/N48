@@ -1,0 +1,36 @@
+name: Patch bundled print logo reference
+
+on:
+  push:
+    branches:
+      - dev/school-setup-import
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev/school-setup-import
+      - name: Use bundled SVG directly
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('print-page.js')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('<img src="logomoe.png" alt="شعار وزارة التعليم" onerror="this.onerror=null;this.src=\'logomoe.svg\'">', '<img src="logomoe.svg" alt="شعار وزارة التعليم">')
+          path.write_text(text, encoding='utf-8')
+          PY
+          node --check print-page.js
+      - name: Commit and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/patch-print-logo.yml
+          git add print-page.js
+          git commit -m "fix: use bundled Ministry logo in print page"
+          git push origin HEAD:dev/school-setup-import
