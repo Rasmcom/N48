@@ -1,0 +1,276 @@
+name: Generate balanced teacher load workbook
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    if: ${{ github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Build balanced Excel workbook
+        shell: bash
+        run: |
+          python3 -m pip install --quiet openpyxl
+          python3 - <<'PY'
+          from collections import defaultdict
+          from math import floor
+          from pathlib import Path
+          from openpyxl import Workbook, load_workbook
+          from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+          from openpyxl.formatting.rule import CellIsRule
+          from openpyxl.worksheet.table import Table, TableStyleInfo
+
+          output = Path('بيانات_اختبار_تحفيظ_9_شعب_أنصبة_متوازنة.xlsx')
+
+          teachers = [
+              ('Tea_210001','حمد سعد أحمد الغامدي','966530210001','دائم','معلم','دراسات إسلامية','القرآن الكريم والدراسات الإسلامية',24,'معلم ممارس'),
+              ('Tea_210002','خالد علي محمد الزهراني','966530210002','دائم','معلم','دراسات إسلامية','القرآن الكريم والدراسات الإسلامية',24,'معلم ممارس'),
+              ('Tea_210003','محمد عبدالله سعيد الحربي','966530210003','دائم','معلم','دراسات إسلامية','القرآن الكريم والدراسات الإسلامية',24,'معلم متقدم'),
+              ('Tea_210004','سعد صالح محمد القرني','966530210004','دائم','معلم','رياضيات','رياضيات',24,'معلم ممارس'),
+              ('Tea_210005','عبدالعزيز فهد علي العتيبي','966530210005','دائم','معلم','رياضيات','رياضيات',24,'معلم خبير'),
+              ('Tea_210006','تركي ناصر محمد المطيري','966530210006','دائم','معلم','علوم','علوم',24,'معلم ممارس'),
+              ('Tea_210007','ماجد حسن أحمد الشمراني','966530210007','دائم','معلم','لغة إنجليزية','لغة إنجليزية',18,'معلم متقدم'),
+              ('Tea_210008','فيصل عبدالله سالم الثقفي','966530210008','دائم','معلم','لغة عربية','لغة عربية',24,'معلم ممارس'),
+              ('Tea_210009','عبدالرحمن محمد عوض المالكي','966530210009','دائم','معلم','لغة عربية','لغة عربية',24,'معلم ممارس'),
+              ('Tea_210010','سلطان أحمد علي الجهني','966530210010','دائم','معلم','رياضيات وعلوم','رياضيات',24,'معلم ممارس'),
+              ('Tea_210011','بندر سعد محمد القحطاني','966530210011','دائم','معلم','مواد مشتركة','لغة عربية',24,'معلم ممارس'),
+              ('Tea_210012','وليد حسن عبدالله الزهراني','966530210012','دائم','معلم','مواد مشتركة','دراسات اجتماعية',24,'معلم ممارس'),
+              ('Tea_210013','نايف محمد سالم الحارثي','966530210013','دائم','معلم','مواد مشتركة','مهارات حياتية وأسرية',18,'معلم ممارس'),
+              ('Tea_210014','صالح ناصر علي القحطاني','966530210014','دائم','معلم','لغة إنجليزية','لغة إنجليزية',15,'معلم ممارس'),
+          ]
+          specialty = {row[1]: row[5] for row in teachers}
+          target_load = {row[1]: row[7] for row in teachers}
+
+          grade_names = {'p4':'الرابع الابتدائي','p5':'الخامس الابتدائي','p6':'السادس الابتدائي'}
+          assignments = []
+
+          def add(name, grade, sections, subject, periods):
+              for section in sections:
+                  assignments.append((name, specialty[name], grade_names[grade], section, f'{grade_names[grade]}/{section}', f'{grade}_{section}', subject, periods, periods*36, floor(periods*36*.10), floor(periods*18*.10)))
+
+          add('حمد سعد أحمد الغامدي','p4',[1,2,3],'القرآن الكريم والدراسات الإسلامية',8)
+          add('خالد علي محمد الزهراني','p5',[1,2,3],'القرآن الكريم والدراسات الإسلامية',8)
+          add('محمد عبدالله سعيد الحربي','p6',[1,2,3],'القرآن الكريم والدراسات الإسلامية',8)
+          add('سعد صالح محمد القرني','p4',[1,2,3],'رياضيات',6)
+          add('سعد صالح محمد القرني','p5',[1],'رياضيات',6)
+          add('عبدالعزيز فهد علي العتيبي','p5',[2,3],'رياضيات',6)
+          add('عبدالعزيز فهد علي العتيبي','p6',[1,2],'رياضيات',6)
+          add('تركي ناصر محمد المطيري','p4',[1,2,3],'علوم',4)
+          add('تركي ناصر محمد المطيري','p5',[1,2,3],'علوم',4)
+
+          # اللغة الإنجليزية: صالح 15 حصة، وماجد 12 إنجليزي + 6 مواد مشتركة = 18.
+          add('ماجد حسن أحمد الشمراني','p4',[1,2,3],'لغة إنجليزية',3)
+          add('ماجد حسن أحمد الشمراني','p5',[1],'لغة إنجليزية',3)
+          add('صالح ناصر علي القحطاني','p5',[2,3],'لغة إنجليزية',3)
+          add('صالح ناصر علي القحطاني','p6',[1,2,3],'لغة إنجليزية',3)
+          add('ماجد حسن أحمد الشمراني','p6',[3],'دراسات اجتماعية',2)
+          add('ماجد حسن أحمد الشمراني','p6',[3],'مهارات رقمية',2)
+          add('ماجد حسن أحمد الشمراني','p6',[3],'تربية بدنية',2)
+
+          add('فيصل عبدالله سالم الثقفي','p4',[1,2,3],'لغة عربية',5)
+          add('فيصل عبدالله سالم الثقفي','p5',[1],'لغة عربية',5)
+          add('فيصل عبدالله سالم الثقفي','p4',[1,2],'تجويد',1)
+          add('فيصل عبدالله سالم الثقفي','p4',[1,2],'تربية فنية',1)
+
+          add('عبدالرحمن محمد عوض المالكي','p5',[2,3],'لغة عربية',5)
+          add('عبدالرحمن محمد عوض المالكي','p6',[1,2],'لغة عربية',5)
+          add('عبدالرحمن محمد عوض المالكي','p4',[1,2],'مهارات حياتية وأسرية',1)
+          add('عبدالرحمن محمد عوض المالكي','p4',[3],'تجويد',1)
+          add('عبدالرحمن محمد عوض المالكي','p5',[1],'تجويد',1)
+
+          add('سلطان أحمد علي الجهني','p6',[3],'رياضيات',6)
+          add('سلطان أحمد علي الجهني','p6',[1,2,3],'علوم',4)
+          add('سلطان أحمد علي الجهني','p4',[1],'دراسات اجتماعية',2)
+          add('سلطان أحمد علي الجهني','p4',[1],'مهارات رقمية',2)
+          add('سلطان أحمد علي الجهني','p4',[1],'تربية بدنية',2)
+
+          add('بندر سعد محمد القحطاني','p6',[3],'لغة عربية',5)
+          add('بندر سعد محمد القحطاني','p4',[2,3],'دراسات اجتماعية',2)
+          add('بندر سعد محمد القحطاني','p5',[1],'دراسات اجتماعية',2)
+          add('بندر سعد محمد القحطاني','p4',[2,3],'مهارات رقمية',2)
+          add('بندر سعد محمد القحطاني','p5',[1],'مهارات رقمية',2)
+          add('بندر سعد محمد القحطاني','p4',[2,3],'تربية بدنية',2)
+          add('بندر سعد محمد القحطاني','p5',[1],'تربية بدنية',2)
+          add('بندر سعد محمد القحطاني','p4',[3],'تربية فنية',1)
+
+          for subject in ('دراسات اجتماعية','مهارات رقمية','تربية بدنية'):
+              add('وليد حسن عبدالله الزهراني','p5',[2,3],subject,2)
+              add('وليد حسن عبدالله الزهراني','p6',[1,2],subject,2)
+
+          # نُقلت مواد السادس/3 المشتركة إلى ماجد، فأصبح نصاب نايف 18 بدل 24.
+          add('نايف محمد سالم الحارثي','p5',[2,3],'تجويد',1)
+          add('نايف محمد سالم الحارثي','p6',[1,2,3],'تجويد',1)
+          add('نايف محمد سالم الحارثي','p5',[1,2,3],'تربية فنية',1)
+          add('نايف محمد سالم الحارثي','p6',[1,2,3],'تربية فنية',1)
+          add('نايف محمد سالم الحارثي','p4',[3],'مهارات حياتية وأسرية',1)
+          add('نايف محمد سالم الحارثي','p5',[1,2,3],'مهارات حياتية وأسرية',1)
+          add('نايف محمد سالم الحارثي','p6',[1,2,3],'مهارات حياتية وأسرية',1)
+
+          totals = defaultdict(int)
+          counts = defaultdict(int)
+          for row in assignments:
+              totals[row[0]] += row[7]
+              counts[row[0]] += 1
+
+          assert len(teachers) == 14
+          assert len(assignments) == 99
+          assert all(15 <= target_load[name] <= 24 for name in target_load)
+          assert all(totals[name] == target_load[name] for name in target_load), (totals, target_load)
+          assert totals['صالح ناصر علي القحطاني'] == 15
+          assert totals['ماجد حسن أحمد الشمراني'] == 18
+          assert totals['نايف محمد سالم الحارثي'] == 18
+
+          wb = Workbook()
+          ws_teachers = wb.active
+          ws_teachers.title = 'المعلمون للاستيراد'
+          ws_assign = wb.create_sheet('الإسنادات المقترحة')
+          ws_summary = wb.create_sheet('ملخص الأنصبة')
+          ws_help = wb.create_sheet('تعليمات الاختبار')
+
+          navy = '0B3154'
+          teal = '087986'
+          pale = 'E8F5F5'
+          green = 'EAF7F1'
+          red = 'FFF0F1'
+          white = 'FFFFFF'
+          border = Border(left=Side(style='thin', color='DCE5E9'), right=Side(style='thin', color='DCE5E9'), top=Side(style='thin', color='DCE5E9'), bottom=Side(style='thin', color='DCE5E9'))
+
+          def style_sheet(ws, widths=None, freeze='A2'):
+              ws.sheet_view.rightToLeft = True
+              ws.freeze_panes = freeze
+              ws.auto_filter.ref = ws.dimensions
+              for cell in ws[1]:
+                  cell.fill = PatternFill('solid', fgColor=navy)
+                  cell.font = Font(name='Cairo', color=white, bold=True)
+                  cell.alignment = Alignment(horizontal='center', vertical='center')
+                  cell.border = border
+              ws.row_dimensions[1].height = 28
+              for row in ws.iter_rows(min_row=2):
+                  for cell in row:
+                      cell.font = Font(name='Cairo', size=10)
+                      cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+                      cell.border = border
+              if widths:
+                  for col, width in widths.items():
+                      ws.column_dimensions[col].width = width
+
+          teacher_headers = ['index','المعرف','اسم المعلم','رقم الجوال','الحالة','الوظيفة','التخصص','مادة التخصص','النصاب','الرتبة المقترحة']
+          ws_teachers.append(teacher_headers)
+          for index, row in enumerate(teachers):
+              ws_teachers.append([index, *row])
+          style_sheet(ws_teachers, {'A':8,'B':15,'C':29,'D':17,'E':11,'F':11,'G':20,'H':35,'I':10,'J':17})
+
+          assignment_headers = ['index','اسم المعلم','التخصص','الصف','الشعبة','الفصل والشعبة','رمز الفصل','المادة','الحصص الأسبوعية','الحصص السنوية','حد 10% السنوي','حد 10% لكل فصل دراسي']
+          ws_assign.append(assignment_headers)
+          for index, row in enumerate(assignments):
+              ws_assign.append([index, *row])
+          style_sheet(ws_assign, {'A':8,'B':29,'C':20,'D':20,'E':9,'F':24,'G':12,'H':35,'I':15,'J':15,'K':15,'L':19})
+
+          summary_headers = ['index','اسم المعلم','التخصص','النصاب في ملف الاستيراد','مجموع الإسنادات','الفرق','الحالة','عدد الإسنادات']
+          ws_summary.append(summary_headers)
+          for index, teacher in enumerate(teachers, start=0):
+              excel_row = index + 2
+              name = teacher[1]
+              ws_summary.append([
+                  index,
+                  name,
+                  teacher[5],
+                  teacher[7],
+                  f'=SUMIF(\'الإسنادات المقترحة\'!$B:$B,B{excel_row},\'الإسنادات المقترحة\'!$I:$I)',
+                  f'=D{excel_row}-E{excel_row}',
+                  f'=IF(F{excel_row}=0,"مطابق","يحتاج مراجعة")',
+                  f'=COUNTIF(\'الإسنادات المقترحة\'!$B:$B,B{excel_row})'
+              ])
+          style_sheet(ws_summary, {'A':8,'B':29,'C':20,'D':20,'E':18,'F':10,'G':16,'H':15})
+          ws_summary.conditional_formatting.add(f'F2:F{len(teachers)+1}', CellIsRule(operator='equal', formula=['0'], fill=PatternFill('solid', fgColor=green)))
+          ws_summary.conditional_formatting.add(f'F2:F{len(teachers)+1}', CellIsRule(operator='notEqual', formula=['0'], fill=PatternFill('solid', fgColor=red)))
+
+          ws_help.sheet_view.rightToLeft = True
+          ws_help.merge_cells('A1:C1')
+          ws_help['A1'] = 'سيناريو اختبار موزّع حصة النشاط — تحفيظ رابع وخامس وسادس'
+          ws_help['A1'].fill = PatternFill('solid', fgColor=navy)
+          ws_help['A1'].font = Font(name='Cairo', color=white, bold=True, size=15)
+          ws_help['A1'].alignment = Alignment(horizontal='center', vertical='center')
+          ws_help.row_dimensions[1].height = 34
+          ws_help.append([])
+          ws_help.append(['الخطوة','الإجراء','النتيجة المتوقعة'])
+          instructions = [
+              (1,'في إعداد المدرسة اختر: ابتدائي تحفيظ، ثم فعّل الرابع والخامس والسادس.','تظهر الصفوف الثلاثة في صفحة الشعب.'),
+              (2,'اجعل لكل صف 3 شعب: 1 و2 و3.','يصبح لديك 9 فصول جاهزة للاختبار.'),
+              (3,'ارفع ورقة «المعلمون للاستيراد».','يقرأ النظام الاسم والتخصص والنصاب تلقائيًا.'),
+              (4,'اعتمد جميع المعلمين الأربعة عشر.','تتراوح الأنصبة بين 15 و18 و24 حصة، ولا يقل أي نصاب عن 15 ولا يزيد على 24.'),
+              (5,'أدخل الإسنادات وفق ورقة «الإسنادات المقترحة».','يصبح مجموع كل معلم مطابقًا للنصاب المدخل.'),
+              (6,'شغّل التحقق، ثم اختر طريقة الفصل الدراسي الثاني.','الإبقاء على الفصل الأول أو إنشاء توزيع مختلف.'),
+              (7,'ابدأ التوزيع.','ينتج 18 أسبوعًا لكل فصل دراسي دون ظهور المعلم في شعبتين في الأسبوع نفسه.'),
+              (8,'راجع موازنة المعلمين.','يدخل جميع المعلمين المؤهلين في التوزيع وفق الرصيد المتاح ومن دون تجاوز نسبة 10%.'),
+              (9,'راجع معلمي اللغة الإنجليزية.','صالح نصابه 15 حصة إنجليزي، وماجد نصابه 18 حصة منها 12 إنجليزي و6 مواد مشتركة.'),
+              (10,'راجع ورقة «ملخص الأنصبة».','جميع الفروق تساوي صفرًا، وأقل نصاب 15 وأعلى نصاب 24.')
+          ]
+          for item in instructions:
+              ws_help.append(item)
+          for cell in ws_help[3]:
+              cell.fill = PatternFill('solid', fgColor=teal)
+              cell.font = Font(name='Cairo', color=white, bold=True)
+              cell.alignment = Alignment(horizontal='center', vertical='center')
+              cell.border = border
+          for row in ws_help.iter_rows(min_row=4, max_row=ws_help.max_row):
+              for cell in row:
+                  cell.font = Font(name='Cairo', size=11)
+                  cell.alignment = Alignment(horizontal='right' if cell.column > 1 else 'center', vertical='center', wrap_text=True)
+                  cell.border = border
+          ws_help.column_dimensions['A'].width = 10
+          ws_help.column_dimensions['B'].width = 62
+          ws_help.column_dimensions['C'].width = 72
+          ws_help.freeze_panes = 'A4'
+
+          for ws, name in ((ws_teachers,'TeachersTable'), (ws_assign,'AssignmentsTable'), (ws_summary,'SummaryTable')):
+              table = Table(displayName=name, ref=ws.dimensions)
+              table.tableStyleInfo = TableStyleInfo(name='TableStyleMedium2', showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+              ws.add_table(table)
+              ws.auto_filter.ref = ws.dimensions
+              ws.sheet_properties.pageSetUpPr.fitToPage = True
+              ws.page_setup.fitToWidth = 1
+              ws.page_setup.fitToHeight = 0
+              ws.page_margins.left = 0.25
+              ws.page_margins.right = 0.25
+              ws.page_margins.top = 0.4
+              ws.page_margins.bottom = 0.4
+
+          if hasattr(wb, 'calculation'):
+              wb.calculation.calcMode = 'auto'
+              wb.calculation.fullCalcOnLoad = True
+              wb.calculation.forceFullCalc = True
+
+          wb.save(output)
+
+          check = load_workbook(output, data_only=False)
+          assert check.sheetnames == ['المعلمون للاستيراد','الإسنادات المقترحة','ملخص الأنصبة','تعليمات الاختبار']
+          assert check['المعلمون للاستيراد'].max_row == 15
+          assert check['الإسنادات المقترحة'].max_row == 100
+          assert check['ملخص الأنصبة']['D8'].value == 18  # ماجد
+          assert check['ملخص الأنصبة']['D14'].value == 18 # نايف
+          assert check['ملخص الأنصبة']['D15'].value == 15 # صالح
+          check.close()
+          print(output)
+          PY
+
+      - name: Commit generated workbook
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/generate-balanced-test-workbook.yml
+          git add "بيانات_اختبار_تحفيظ_9_شعب_أنصبة_متوازنة.xlsx"
+          git commit -m "data: add balanced teacher-load Excel test file"
+          git push origin HEAD:main
