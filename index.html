@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#071f3f" />
-  <meta name="description" content="موزع حصة النشاط وفق نسبة 10% مع حفظ محلي داخل المتصفح" />
+  <meta name="description" content="موقع لتوزيع حصص النشاط للمدارس التي يبلغ عدد حصص موادها 35 حصة أسبوعيًا أو تبلغ أنصبة جميع معلميها 24 حصة" />
   <title>موزّع حصة النشاط</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="phase3.css" />
   <link rel="stylesheet" href="ui-hotfix.css" />
   <link rel="stylesheet" href="import-selection.css" />
+  <link rel="stylesheet" href="site-content.css" />
   <script defer src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script defer src="import-selection.js"></script>
   <script defer src="app3.js"></script>
@@ -51,7 +52,7 @@
       <div id="viewRoot" class="view-root">
         <section class="view active" data-view-panel="dashboard">
           <div class="hero-panel">
-            <div class="hero-copy"><span class="hero-kicker">من بيانات المدرسة إلى توزيع عادل</span><h2>اختر المعلمين وإسناداتهم، ودَع النظام يحدد المادة المختصر منها لكل فصل</h2><p>تُقرأ حصص المادة تلقائيًا من الخطة الدراسية، ثم يقارن النظام جميع المعلمين والتخصصات قبل إنشاء توزيع حصة النشاط دون تجاوز نسبة ١٠٪.</p><div class="hero-actions"><button class="primary-button" data-go="settings">ابدأ إعداد المدرسة</button><button class="secondary-button" data-go="import">استيراد المعلمين</button></div></div>
+            <div class="hero-copy"><span class="hero-kicker">تعريف الموقع</span><h2>توزيع حصص النشاط وفق واقع المدرسة وأنصبة المعلمين</h2><p class="hero-eligibility">هذا الموقع مخصص لتوزيع حصص النشاط للمدارس التي يبلغ عدد حصص المواد فيها ٣٥ حصة أسبوعيًا، أو التي تبلغ أنصبة جميع معلميها ٢٤ حصة.</p><p class="hero-description">تُقرأ حصص المواد تلقائيًا من الخطة الدراسية، ثم يقارن النظام جميع المعلمين والتخصصات ويوازن المشاركة بينهم قبل إنشاء التوزيع، دون تجاوز نسبة ١٠٪ من حصص أي مادة.</p><div class="hero-actions"><button class="primary-button" data-go="settings">ابدأ إعداد المدرسة</button><button class="secondary-button" data-go="import">استيراد المعلمين</button></div></div>
             <div class="hero-orbit" aria-hidden="true"><div class="orbit-ring orbit-1"></div><div class="orbit-ring orbit-2"></div><div class="orbit-center">١٠٪</div><span class="orbit-node node-a">٣٥</span><span class="orbit-node node-b">٢٤</span><span class="orbit-node node-c activity">١</span></div>
           </div>
           <div class="stats-grid">
@@ -97,6 +98,11 @@
 
         <section class="view" data-view-panel="distribution"><div class="distribution-toolbar panel"><div><span class="section-kicker">المقارنة الشاملة</span><h3>توزيع حصة النشاط على الفصول</h3><p>يقارن النظام جميع المعلمين والتخصصات، ثم يحدد المادة المختصر منها والفرق.</p></div><div class="toolbar-actions"><button id="generateDistributionBtn" class="activity-button">بدء التوزيع</button><button id="clearDistributionBtn" class="secondary-button">مسح النتائج</button></div></div><div id="distributionResults" class="distribution-results empty-state panel"><div class="empty-icon activity-empty">●</div><h3>لم يتم إنشاء توزيع بعد</h3><p>أكمل إسنادات المعلمين، ثم شغّل التحقق قبل بدء التوزيع.</p></div></section>
       </div>
+
+      <footer class="site-footer" aria-label="بيانات المبادرة والإعداد">
+        <span>مبادرة قسم النشاط بالإدارة العامة للتعليم بمنطقة مكة المكرمة</span>
+        <span>إعداد محمد الكناني</span>
+      </footer>
     </main>
   </div>
 
