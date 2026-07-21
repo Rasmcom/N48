@@ -1,0 +1,54 @@
+/* التعريف بالموقع والتذييل المؤسسي — يظهران في واجهة الموقع فقط */
+.main-area{
+  display:flex;
+  flex-direction:column;
+}
+.view-root{
+  flex:1 0 auto;
+}
+.hero-eligibility{
+  margin:0 0 9px!important;
+  max-width:760px!important;
+  padding:11px 14px;
+  border:1px solid rgba(155,226,223,.22);
+  border-radius:13px;
+  background:rgba(50,173,178,.10);
+  color:#eaffff!important;
+  font-weight:700;
+  line-height:1.9!important;
+}
+.hero-description{
+  margin-top:0!important;
+}
+.site-footer{
+  flex:0 0 auto;
+  margin-top:30px;
+  padding:17px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+  line-height:1.8;
+}
+.site-footer span:last-child{
+  color:var(--teal-700);
+  white-space:nowrap;
+}
+@media(max-width:900px){
+  .site-footer{
+    margin-top:22px;
+    padding:15px 8px 8px;
+    display:grid;
+    justify-items:center;
+    gap:5px;
+    text-align:center;
+  }
+  .site-footer span:last-child{white-space:normal}
+}
+@media print{
+  .site-footer{display:none!important}
+}
